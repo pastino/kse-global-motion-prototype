@@ -63,10 +63,12 @@ Two-column desktop form and one-column mobile form. Every control has a visible 
 ## Motion
 
 - GSAP ScrollTrigger controls reveal, parallax, transport motion, and route drawing.
+- Remotion renders the conveyor frame, belt slats, rollers, scanner, and parcel from one deterministic motion timeline.
 - Animate only transform, opacity, and SVG dash offset during scroll.
 - Transport stage keeps at most the parcel plus one dominant vehicle visually active.
 - `prefers-reduced-motion` skips GSAP setup and shows completed static states.
-- Mobile removes pinned scrub motion and uses a static vertical transport composition.
+- Desktop scrubs an all-keyframe 1440×810 video in both scroll directions.
+- Mobile removes pinned scrub motion and plays a dedicated 750×1334 camera-follow video only while the scene is visible.
 
 ## Imagery
 
@@ -82,4 +84,3 @@ Two-column desktop form and one-column mobile form. Every control has a visible 
 - Unverified city nodes or claims of direct global facilities
 - Continuous bouncing, scroll hijacking, and decorative motion
 - Single-character Korean line breaks
-

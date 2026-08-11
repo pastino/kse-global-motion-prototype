@@ -67,8 +67,6 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
         // 전진 방향 계약: 레일과 측면 트럭은 오른쪽, 탑뷰 차량과 선박은 위쪽으로 이동한다.
         .to('[data-sequence-progress]', { scaleX: 1, duration: 12 }, 0)
         .fromTo('[data-sorter-backdrop]', { scale: 1.08, opacity: 0.72 }, { scale: 1, opacity: 1, duration: 2.7, ease: 'power1.out' }, 0)
-        .fromTo('[data-scan-beam]', { scale: 0.88, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'power2.out' }, 2.05)
-        .to('[data-scan-beam]', { opacity: 0, duration: 0.18 }, 2.58)
         .fromTo('[data-sorting-status]', { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: 'power3.out' }, 1.9)
         .to('[data-sorting-status]', { y: -8, opacity: 0, duration: 0.32, ease: 'power2.in' }, 2.56)
         .to('[data-scroll-hint]', { opacity: 0, duration: 0.28, ease: 'power2.in' }, 2.42)

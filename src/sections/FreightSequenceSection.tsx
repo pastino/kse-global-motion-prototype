@@ -18,7 +18,6 @@ export function FreightSequenceSection() {
           <div className="sequence-road sequence-road--top"><span /><span /><span /></div>
           <div className="sequence-ocean"><span className="ocean-wake ocean-wake--left" /><span className="ocean-wake ocean-wake--right" /></div>
 
-          <div className="sorting-scan-flash" data-scan-beam />
           <div className="sorting-status" data-sorting-status>
             <span><i /> OMS ORDER</span>
             <span><i /> WEIGHT OK</span>

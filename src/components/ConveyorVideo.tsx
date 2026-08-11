@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 
-const VIDEO_SOURCE = '/assets/generated/conveyor-sequence.mp4'
+const DESKTOP_VIDEO_SOURCE = '/assets/generated/conveyor-sequence.mp4'
+const MOBILE_VIDEO_SOURCE = '/assets/generated/conveyor-sequence-mobile.mp4'
 
 export function ConveyorVideo({ mobile = false }: { mobile?: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -17,6 +18,7 @@ export function ConveyorVideo({ mobile = false }: { mobile?: boolean }) {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
+          if (video.ended) video.currentTime = 0
           void video.play().catch(() => undefined)
         } else {
           video.pause()
@@ -37,8 +39,8 @@ export function ConveyorVideo({ mobile = false }: { mobile?: boolean }) {
       ref={videoRef}
       className={mobile ? 'sequence-mobile-conveyor' : undefined}
       data-conveyor-video={mobile ? undefined : true}
+      data-motion-render="remotion"
       muted
-      loop={mobile}
       playsInline
       preload={mobile ? 'metadata' : 'auto'}
       poster={mobile
@@ -46,7 +48,7 @@ export function ConveyorVideo({ mobile = false }: { mobile?: boolean }) {
         : '/assets/generated/conveyor-sequence-poster.webp'}
       aria-hidden="true"
     >
-      <source src={VIDEO_SOURCE} type="video/mp4" />
+      <source src={mobile ? MOBILE_VIDEO_SOURCE : DESKTOP_VIDEO_SOURCE} type="video/mp4" />
     </video>
   )
 
