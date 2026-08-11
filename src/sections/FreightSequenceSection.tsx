@@ -8,19 +8,21 @@ const services = [
 function SortingRail({ animated = false, mobile = false }: { animated?: boolean; mobile?: boolean }) {
   return (
     <div className={mobile ? 'sorting-system sorting-system--mobile' : 'sorting-system'} data-sorter={animated ? true : undefined} aria-hidden="true">
-      <div className="sorting-rail sorting-rail--back"><span /></div>
-      <div className="sorting-rail sorting-rail--main"><span /></div>
-      <div className="sorting-rail sorting-rail--branch"><span /></div>
-      <div className="sorting-gate">
-        <i data-scan-beam={animated ? true : undefined} />
-        <b>SCAN</b>
-      </div>
-      <div className="sorting-parcel sorting-parcel--ghost sorting-parcel--ghost-one" data-parcel-ghost={animated ? true : undefined}><span /></div>
-      <div className="sorting-parcel sorting-parcel--ghost sorting-parcel--ghost-two" data-parcel-ghost={animated ? true : undefined}><span /></div>
-      <div className="sorting-parcel sorting-parcel--primary" data-parcel-primary={animated ? true : undefined}>
-        <span>KSE</span>
-        <small>000381</small>
-      </div>
+      <svg className="sorting-motion-layer" viewBox="0 0 1672 943" preserveAspectRatio="xMidYMid slice">
+        <path
+          data-conveyor-path={animated ? true : undefined}
+          d="M -120 810 C 260 815 585 710 790 620 C 960 545 1080 455 1160 392 C 1305 310 1490 298 1780 325"
+          fill="none"
+        />
+        <g className="sorting-parcel-svg" data-parcel-primary={animated ? true : undefined}>
+          <polygon points="-62,-28 0,-54 62,-28 0,-2" />
+          <rect x="-62" y="-28" width="124" height="78" rx="5" />
+          <polygon points="62,-28 0,-2 0,50 62,25" />
+          <path d="M0 -2V50M-62 -28L0 -2L62 -28" />
+          <text x="-45" y="18">KSE</text>
+        </g>
+      </svg>
+      <div className="sorting-scan-flash" data-scan-beam={animated ? true : undefined} />
       <div className="sorting-status" data-sorting-status={animated ? true : undefined}>
         <span><i /> OMS ORDER</span>
         <span><i /> WEIGHT OK</span>

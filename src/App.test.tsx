@@ -33,10 +33,12 @@ describe('KSE 글로벌 프로토타입', () => {
   })
 
   it('화물이 운송수단 사이에서 이어지는 모션 서사를 제공한다', () => {
-    render(<App />)
+    const { container } = render(<App />)
     expect(screen.getByRole('heading', { name: /주문이 들어오면/ })).toBeInTheDocument()
     expect(screen.getByText(/두 거점에서 시작해/)).toBeInTheDocument()
     expect(screen.getAllByText('OCEAN').length).toBeGreaterThan(0)
+    expect(container.querySelectorAll('[data-conveyor-path]')).toHaveLength(1)
+    expect(container.querySelector('.sorting-rail--branch')).not.toBeInTheDocument()
   })
 
   it('실제 KSE 운영 서비스와 현장 근거를 함께 제공한다', () => {
