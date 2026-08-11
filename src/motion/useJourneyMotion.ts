@@ -88,6 +88,33 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
           scrollTrigger: { trigger: '#network', start: 'top 70%', end: 'center 40%', scrub: true },
         },
       )
+
+      gsap.fromTo(
+        '[data-route-visual]',
+        { y: 60, rotateX: 6, opacity: 0, scale: 0.96 },
+        {
+          y: 0,
+          rotateX: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 1.15,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: '#network', start: 'top 72%', once: true },
+        },
+      )
+
+      gsap.fromTo(
+        '[data-route-node]',
+        { scale: 0.35, opacity: 0 },
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.65,
+          stagger: 0.09,
+          ease: 'back.out(1.8)',
+          scrollTrigger: { trigger: '[data-route-visual]', start: 'top 68%', once: true },
+        },
+      )
     }, rootRef)
 
     return () => context.revert()
