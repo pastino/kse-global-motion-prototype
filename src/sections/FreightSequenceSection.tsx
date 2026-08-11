@@ -1,3 +1,5 @@
+import { ConveyorFrameSequence } from '../components/ConveyorFrameSequence'
+
 const services = [
   ['01', 'FULFILLMENT', '주문 통합 · 입고 · 검수'],
   ['02', 'CUSTOMS', '수출입 신고 · 통관 대응'],
@@ -5,45 +7,23 @@ const services = [
   ['04', 'OCEAN', '전 세계 파트너 항로 연결'],
 ]
 
-function SortingRail({ animated = false, mobile = false }: { animated?: boolean; mobile?: boolean }) {
-  return (
-    <div className={mobile ? 'sorting-system sorting-system--mobile' : 'sorting-system'} data-sorter={animated ? true : undefined} aria-hidden="true">
-      <svg className="sorting-motion-layer" viewBox="0 0 1672 943" preserveAspectRatio="xMidYMid slice">
-        <path
-          data-conveyor-path={animated ? true : undefined}
-          d="M -120 810 C 260 815 585 710 790 620 C 960 545 1080 455 1160 392 C 1305 310 1490 298 1780 325"
-          fill="none"
-        />
-        <g className="sorting-parcel-svg" data-parcel-primary={animated ? true : undefined}>
-          <polygon points="-62,-28 0,-54 62,-28 0,-2" />
-          <rect x="-62" y="-28" width="124" height="78" rx="5" />
-          <polygon points="62,-28 0,-2 0,50 62,25" />
-          <path d="M0 -2V50M-62 -28L0 -2L62 -28" />
-          <text x="-45" y="18">KSE</text>
-        </g>
-      </svg>
-      <div className="sorting-scan-flash" data-scan-beam={animated ? true : undefined} />
-      <div className="sorting-status" data-sorting-status={animated ? true : undefined}>
-        <span><i /> OMS ORDER</span>
-        <span><i /> WEIGHT OK</span>
-        <span><i /> ROUTE READY</span>
-      </div>
-    </div>
-  )
-}
-
 export function FreightSequenceSection() {
   return (
     <section id="journey" className="freight-sequence" aria-labelledby="sequence-title">
       <div className="sequence-sticky">
         <div className="sequence-stage" aria-hidden="true">
           <div className="sequence-grid" />
-          <div className="sorting-backdrop" data-sorter-backdrop />
+          <ConveyorFrameSequence />
           <div className="sequence-road sequence-road--side"><span /><span /><span /></div>
           <div className="sequence-road sequence-road--top"><span /><span /><span /></div>
           <div className="sequence-ocean"><span className="ocean-wake ocean-wake--left" /><span className="ocean-wake ocean-wake--right" /></div>
 
-          <SortingRail animated />
+          <div className="sorting-scan-flash" data-scan-beam />
+          <div className="sorting-status" data-sorting-status>
+            <span><i /> OMS ORDER</span>
+            <span><i /> WEIGHT OK</span>
+            <span><i /> ROUTE READY</span>
+          </div>
           <img data-truck-side className="sequence-vehicle sequence-truck-side" src="/assets/generated/freight-truck-side-v2.webp" alt="" decoding="async" />
           <img data-truck-top className="sequence-vehicle sequence-truck-top" src="/assets/generated/freight-truck-top-v2.webp" alt="" decoding="async" />
           <img data-ship-top className="sequence-vehicle sequence-ship-top" src="/assets/generated/cargo-ship-top-v2.webp" alt="" decoding="async" />
@@ -55,7 +35,7 @@ export function FreightSequenceSection() {
 
         <div className="sequence-ui section-shell">
           <div className="sequence-meta">
-            <span>SCROLL TO MOVE</span>
+            <span data-scroll-hint>SCROLL TO MOVE</span>
             <span><strong data-sequence-speed>00</strong> KM/H</span>
           </div>
 
@@ -109,7 +89,18 @@ export function FreightSequenceSection() {
             <h3>주문이 모이면<br />출고가 시작됩니다.</h3>
             <p>OMS 주문 수집부터 입고·검수·피킹·포장까지.</p>
           </div>
-          <SortingRail mobile />
+          <video
+            className="sequence-mobile-conveyor"
+            muted
+            loop
+            autoPlay
+            playsInline
+            preload="metadata"
+            poster="/assets/generated/conveyor-sequence/frame-036.webp"
+            aria-hidden="true"
+          >
+            <source src="/assets/generated/conveyor-sequence-fallback.mp4" type="video/mp4" />
+          </video>
         </div>
         <div className="sequence-mobile-scene sequence-mobile-scene--road" data-reveal>
           <div className="section-shell sequence-mobile-copy">

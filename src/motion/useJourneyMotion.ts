@@ -1,10 +1,10 @@
 import { type RefObject, useLayoutEffect } from 'react'
 import { gsap } from 'gsap'
-import { MotionPathPlugin } from 'gsap/MotionPathPlugin'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useReducedMotion } from './useReducedMotion'
+import { createConveyorFrameSequence } from './conveyorFrameSequence'
 
-gsap.registerPlugin(ScrollTrigger, MotionPathPlugin)
+gsap.registerPlugin(ScrollTrigger)
 
 export const FORWARD_MOTION = {
   sideTruck: { entry: -110, settle: -78, exit: 20 },
@@ -18,7 +18,12 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
   useLayoutEffect(() => {
     if (reducedMotion || !rootRef.current) return
 
+    let conveyorSequence: ReturnType<typeof createConveyorFrameSequence> | null = null
+
     const context = gsap.context(() => {
+      const conveyorCanvas = rootRef.current?.querySelector<HTMLCanvasElement>('[data-conveyor-sequence]')
+      if (conveyorCanvas) conveyorSequence = createConveyorFrameSequence(conveyorCanvas)
+
       gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((element) => {
         gsap.fromTo(
           element,
@@ -50,6 +55,7 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
           scrub: 0.7,
           invalidateOnRefresh: true,
           onUpdate: ({ progress }) => {
+            conveyorSequence?.setProgress(Math.min(1, progress / 0.255))
             if (!speedElement) return
             const acceleration = progress < 0.72 ? progress / 0.72 : (1 - progress) / 0.28
             speedElement.textContent = String(Math.max(0, Math.round(acceleration * 52))).padStart(2, '0')
@@ -61,26 +67,13 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
         // 전진 방향 계약: 레일과 측면 트럭은 오른쪽, 탑뷰 차량과 선박은 위쪽으로 이동한다.
         .to('[data-sequence-progress]', { scaleX: 1, duration: 12 }, 0)
         .fromTo('[data-sorter-backdrop]', { scale: 1.08, opacity: 0.72 }, { scale: 1, opacity: 1, duration: 2.7, ease: 'power1.out' }, 0)
-        .fromTo('[data-sorter]', { scale: 0.97, opacity: 0.45 }, { scale: 1, opacity: 1, duration: 0.9, ease: 'power3.out' }, 0)
-        .to('[data-parcel-primary]', {
-          motionPath: {
-            path: '[data-conveyor-path]',
-            align: '[data-conveyor-path]',
-            alignOrigin: [0.5, 0.5],
-            autoRotate: true,
-            start: 0,
-            end: 1,
-          },
-          duration: 3.05,
-          ease: 'power1.inOut',
-        }, 0.25)
-        .to('[data-parcel-primary]', { scale: 0.34, duration: 3.05, ease: 'power1.inOut' }, 0.25)
         .fromTo('[data-scan-beam]', { scale: 0.88, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'power2.out' }, 2.05)
         .to('[data-scan-beam]', { opacity: 0, duration: 0.18 }, 2.58)
         .fromTo('[data-sorting-status]', { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: 'power3.out' }, 1.9)
+        .to('[data-sorting-status]', { y: -8, opacity: 0, duration: 0.32, ease: 'power2.in' }, 2.56)
+        .to('[data-scroll-hint]', { opacity: 0, duration: 0.28, ease: 'power2.in' }, 2.42)
         .to('[data-sequence-copy="pickup"]', { y: -74, opacity: 0, duration: 0.5, ease: 'power2.in' }, 2.48)
         .to('[data-sorter-backdrop]', { scale: 1.04, opacity: 0, duration: 0.46, ease: 'power2.in' }, 2.48)
-        .to('[data-sorter]', { scale: 1.03, opacity: 0, duration: 0.58, ease: 'power2.in' }, 2.75)
         .fromTo('[data-truck-side]', { xPercent: FORWARD_MOTION.sideTruck.entry, opacity: 0, scale: 0.94 }, { xPercent: FORWARD_MOTION.sideTruck.settle, opacity: 1, scale: 1, duration: 1, ease: 'power2.out' }, 2.68)
         .to('.sequence-road--side', { opacity: 1, duration: 0.55, ease: 'power2.out' }, 2.62)
         .fromTo('[data-sequence-copy="services"]', { y: 55, opacity: 0 }, { y: 0, opacity: 1, duration: 0.64, ease: 'power2.out' }, 2.9)
@@ -146,7 +139,10 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
       )
     }, rootRef)
 
-    return () => context.revert()
+    return () => {
+      conveyorSequence?.destroy()
+      context.revert()
+    }
   }, [reducedMotion, rootRef])
 
   return reducedMotion

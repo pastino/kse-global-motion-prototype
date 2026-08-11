@@ -37,8 +37,8 @@ describe('KSE 글로벌 프로토타입', () => {
     expect(screen.getByRole('heading', { name: /주문이 들어오면/ })).toBeInTheDocument()
     expect(screen.getByText(/두 거점에서 시작해/)).toBeInTheDocument()
     expect(screen.getAllByText('OCEAN').length).toBeGreaterThan(0)
-    expect(container.querySelectorAll('[data-conveyor-path]')).toHaveLength(1)
-    expect(container.querySelector('.sorting-rail--branch')).not.toBeInTheDocument()
+    expect(container.querySelector('[data-conveyor-sequence]')).toBeInTheDocument()
+    expect(container.querySelector('[data-parcel-primary]')).not.toBeInTheDocument()
   })
 
   it('실제 KSE 운영 서비스와 현장 근거를 함께 제공한다', () => {
