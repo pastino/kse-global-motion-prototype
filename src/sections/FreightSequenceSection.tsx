@@ -1,4 +1,4 @@
-import { ConveyorFrameSequence } from '../components/ConveyorFrameSequence'
+import { ConveyorVideo } from '../components/ConveyorVideo'
 
 const services = [
   ['01', 'FULFILLMENT', '주문 통합 · 입고 · 검수'],
@@ -13,7 +13,7 @@ export function FreightSequenceSection() {
       <div className="sequence-sticky">
         <div className="sequence-stage" aria-hidden="true">
           <div className="sequence-grid" />
-          <ConveyorFrameSequence />
+          <ConveyorVideo />
           <div className="sequence-road sequence-road--side"><span /><span /><span /></div>
           <div className="sequence-road sequence-road--top"><span /><span /><span /></div>
           <div className="sequence-ocean"><span className="ocean-wake ocean-wake--left" /><span className="ocean-wake ocean-wake--right" /></div>
@@ -89,18 +89,7 @@ export function FreightSequenceSection() {
             <h3>주문이 모이면<br />출고가 시작됩니다.</h3>
             <p>OMS 주문 수집부터 입고·검수·피킹·포장까지.</p>
           </div>
-          <video
-            className="sequence-mobile-conveyor"
-            muted
-            loop
-            autoPlay
-            playsInline
-            preload="metadata"
-            poster="/assets/generated/conveyor-sequence/frame-036.webp"
-            aria-hidden="true"
-          >
-            <source src="/assets/generated/conveyor-sequence-fallback.mp4" type="video/mp4" />
-          </video>
+          <ConveyorVideo mobile />
         </div>
         <div className="sequence-mobile-scene sequence-mobile-scene--road" data-reveal>
           <div className="section-shell sequence-mobile-copy">

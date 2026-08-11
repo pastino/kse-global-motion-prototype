@@ -2,7 +2,7 @@ import { type RefObject, useLayoutEffect } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useReducedMotion } from './useReducedMotion'
-import { createConveyorFrameSequence } from './conveyorFrameSequence'
+import { createConveyorVideoScrubber } from './conveyorVideoScrubber'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -18,11 +18,11 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
   useLayoutEffect(() => {
     if (reducedMotion || !rootRef.current) return
 
-    let conveyorSequence: ReturnType<typeof createConveyorFrameSequence> | null = null
+    let conveyorVideo: ReturnType<typeof createConveyorVideoScrubber> | null = null
 
     const context = gsap.context(() => {
-      const conveyorCanvas = rootRef.current?.querySelector<HTMLCanvasElement>('[data-conveyor-sequence]')
-      if (conveyorCanvas) conveyorSequence = createConveyorFrameSequence(conveyorCanvas)
+      const video = rootRef.current?.querySelector<HTMLVideoElement>('[data-conveyor-video]')
+      if (video) conveyorVideo = createConveyorVideoScrubber(video)
 
       gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((element) => {
         gsap.fromTo(
@@ -55,7 +55,7 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
           scrub: 0.7,
           invalidateOnRefresh: true,
           onUpdate: ({ progress }) => {
-            conveyorSequence?.setProgress(Math.min(1, progress / 0.255))
+            conveyorVideo?.setProgress(Math.min(1, progress / 0.255))
             if (!speedElement) return
             const acceleration = progress < 0.72 ? progress / 0.72 : (1 - progress) / 0.28
             speedElement.textContent = String(Math.max(0, Math.round(acceleration * 52))).padStart(2, '0')
@@ -140,7 +140,7 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
     }, rootRef)
 
     return () => {
-      conveyorSequence?.destroy()
+      conveyorVideo?.destroy()
       context.revert()
     }
   }, [reducedMotion, rootRef])

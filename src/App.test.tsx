@@ -37,7 +37,7 @@ describe('KSE 글로벌 프로토타입', () => {
     expect(screen.getByRole('heading', { name: /주문이 들어오면/ })).toBeInTheDocument()
     expect(screen.getByText(/두 거점에서 시작해/)).toBeInTheDocument()
     expect(screen.getAllByText('OCEAN').length).toBeGreaterThan(0)
-    expect(container.querySelector('[data-conveyor-sequence]')).toBeInTheDocument()
+    expect(container.querySelector('[data-conveyor-video]')).toBeInTheDocument()
     expect(container.querySelector('[data-parcel-primary]')).not.toBeInTheDocument()
   })
 
