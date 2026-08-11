@@ -32,20 +32,52 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
         scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true },
       })
 
-      const transport = gsap.timeline({
+      const speedElement = rootRef.current?.querySelector<HTMLElement>('[data-sequence-speed]')
+
+      const sequence = gsap.timeline({
+        defaults: { ease: 'none' },
         scrollTrigger: {
-          trigger: '#transport',
+          trigger: '.freight-sequence',
           start: 'top top',
           end: 'bottom bottom',
-          scrub: 0.8,
+          scrub: 0.35,
+          invalidateOnRefresh: true,
+          onUpdate: ({ progress }) => {
+            if (!speedElement) return
+            const acceleration = progress < 0.72 ? progress / 0.72 : (1 - progress) / 0.28
+            speedElement.textContent = String(Math.max(0, Math.round(acceleration * 52))).padStart(2, '0')
+          },
         },
       })
 
-      transport
-        .fromTo('[data-ship]', { xPercent: -120 }, { xPercent: 70, ease: 'none' }, 0)
-        .fromTo('[data-plane]', { xPercent: -60, yPercent: 45 }, { xPercent: 90, yPercent: -40, ease: 'none' }, 0.12)
-        .fromTo('[data-truck]', { xPercent: -100 }, { xPercent: 110, ease: 'none' }, 0.4)
-        .fromTo('[data-parcel]', { scale: 0.75, y: 20 }, { scale: 1.05, y: -28, ease: 'none' }, 0.15)
+      sequence
+        .to('[data-sequence-progress]', { scaleX: 1, duration: 10 }, 0)
+        .fromTo('[data-stacker]', { xPercent: -24, scale: 0.86 }, { xPercent: 8, scale: 1, duration: 1.1 }, 0)
+        .to('[data-stacker]', { xPercent: 55, opacity: 0, scale: 1.08, duration: 0.65 }, 1.05)
+        .to('[data-sequence-copy="pickup"]', { y: -70, opacity: 0, duration: 0.48 }, 0.92)
+        .fromTo('[data-truck-side]', { xPercent: 62, opacity: 0, scale: 0.96 }, { xPercent: 10, opacity: 1, scale: 1, duration: 0.7 }, 1.1)
+        .to('.sequence-road--side', { opacity: 1, duration: 0.45 }, 1.25)
+        .fromTo('[data-sequence-copy="services"]', { y: 55, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55 }, 1.55)
+        .fromTo('[data-sequence-services]', { xPercent: 38, opacity: 0 }, { xPercent: 0, opacity: 1, duration: 0.7 }, 1.72)
+        .to('[data-truck-side]', { xPercent: -46, duration: 2.25 }, 1.72)
+        .to('[data-sequence-services]', { xPercent: -38, duration: 2.25 }, 1.72)
+        .to('[data-sequence-copy="services"]', { y: -60, opacity: 0, duration: 0.48 }, 3.7)
+        .to('[data-sequence-services]', { opacity: 0, duration: 0.4 }, 3.92)
+        .to('[data-truck-side]', { scale: 1.42, opacity: 0, duration: 0.58 }, 4.05)
+        .to('.sequence-road--side', { opacity: 0, duration: 0.42 }, 4.05)
+        .fromTo('.sequence-road--top', { opacity: 0, scale: 1.24 }, { opacity: 1, scale: 1, duration: 0.62 }, 4.12)
+        .fromTo('[data-truck-top]', { opacity: 0, scale: 1.46, yPercent: -18 }, { opacity: 1, scale: 1, yPercent: 0, duration: 0.62 }, 4.12)
+        .fromTo('[data-sequence-copy="milestone"]', { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.55 }, 4.46)
+        .to('[data-truck-top]', { yPercent: 88, scale: 0.72, duration: 1.75 }, 4.68)
+        .to('[data-sequence-copy="milestone"]', { x: -55, opacity: 0, duration: 0.45 }, 6.05)
+        .to('.sequence-road--top', { opacity: 0, duration: 0.55 }, 6.18)
+        .to('[data-truck-top]', { opacity: 0, scale: 1.28, duration: 0.45 }, 6.18)
+        .to('.sequence-ocean', { opacity: 1, duration: 0.62 }, 6.18)
+        .fromTo('[data-ship-top]', { opacity: 0, scale: 1.95, yPercent: -14 }, { opacity: 1, scale: 1.7, yPercent: -4, duration: 0.62 }, 6.2)
+        .to('[data-ship-top]', { scale: 0.48, yPercent: 44, duration: 2.65 }, 6.78)
+        .fromTo('.sequence-cloud', { opacity: 0, scale: 0.72 }, { opacity: 0.8, scale: 1.12, stagger: 0.12, duration: 0.7 }, 7.18)
+        .fromTo('[data-sequence-copy="ocean"]', { y: 65, opacity: 0 }, { y: 0, opacity: 1, duration: 0.65 }, 8.12)
+        .to('.sequence-grid', { opacity: 0, duration: 0.4 }, 6.1)
 
       gsap.fromTo(
         '[data-route-line]',

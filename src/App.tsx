@@ -2,13 +2,10 @@ import { useRef } from 'react'
 import { SiteHeader } from './components/SiteHeader'
 import { useJourneyMotion } from './motion/useJourneyMotion'
 import { ContactSection } from './sections/ContactSection'
-import { CustomsSection } from './sections/CustomsSection'
-import { FulfillmentSection } from './sections/FulfillmentSection'
+import { FreightSequenceSection } from './sections/FreightSequenceSection'
 import { HeroSection } from './sections/HeroSection'
 import { JapanProofSection } from './sections/JapanProofSection'
-import { JourneySection } from './sections/JourneySection'
 import { NetworkSection } from './sections/NetworkSection'
-import { TransportSection } from './sections/TransportSection'
 
 export default function App() {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -20,10 +17,7 @@ export default function App() {
       <SiteHeader />
       <main id="main-content">
         <HeroSection />
-        <JourneySection />
-        <FulfillmentSection />
-        <CustomsSection />
-        <TransportSection />
+        <FreightSequenceSection />
         <JapanProofSection />
         <NetworkSection />
         <ContactSection />

@@ -7,7 +7,10 @@ vi.mock('gsap', () => ({
     registerPlugin: vi.fn(),
     context: () => ({ revert: vi.fn() }),
     utils: { toArray: () => [] },
-    timeline: () => ({ fromTo: vi.fn().mockReturnThis() }),
+    timeline: () => ({
+      fromTo: vi.fn().mockReturnThis(),
+      to: vi.fn().mockReturnThis(),
+    }),
     to: vi.fn(),
     fromTo: vi.fn(),
   },
@@ -27,5 +30,12 @@ describe('KSE 글로벌 프로토타입', () => {
     render(<App />)
     expect(screen.getByRole('heading', { name: /한일 노선에서 증명했습니다/ })).toBeInTheDocument()
     expect(screen.getByText(/일본 도착보장 대표 서비스 기준/)).toBeInTheDocument()
+  })
+
+  it('화물이 운송수단 사이에서 이어지는 모션 서사를 제공한다', () => {
+    render(<App />)
+    expect(screen.getByRole('heading', { name: /한 번 맡긴 화물은/ })).toBeInTheDocument()
+    expect(screen.getByText(/두 거점에서 시작해/)).toBeInTheDocument()
+    expect(screen.getAllByText('OCEAN').length).toBeGreaterThan(0)
   })
 })

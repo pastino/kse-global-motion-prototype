@@ -18,3 +18,11 @@
 ## Warehouse and customs
 
 실제 창고의 랙과 컨베이어를 참고하되, 입고된 패키지가 스캔 게이트로 이어지는 한 방향 원근으로 재구성했다. 과도한 홀로그램 대신 실제 조명과 스캐너 빛만 사용했다.
+
+## Scroll sequence orthographic sprites v2
+
+Built-in GPT Image 2.0 생성 도구에 기존 운송수단 스프라이트 시트를 시각 참조로 제공했다.
+
+> Create a clean 2x2 sprite sheet on a perfectly flat solid #00ff00 chroma-key background. Match the photorealistic studio-cutout style and navy blue/white logistics palette of the reference. Include a side-view reach stacker carrying one white 40-foot container, a side-view semi truck carrying the same container, an exact top-down view of the same truck, and an exact top-down container ship. Keep every subject separated and fully visible. No ground plane, cast shadow, reflections, logos, labels, text, watermark, or people.
+
+크로마키 원본을 로컬에서 알파 이미지로 변환한 뒤 리치 스태커, 측면 트럭, 탑뷰 트럭, 탑뷰 선박의 네 자산으로 분리했다.

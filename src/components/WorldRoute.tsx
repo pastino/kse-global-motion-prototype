@@ -1,4 +1,4 @@
-import { networkNodes } from '../content/journey'
+import { networkNodes } from '../content/network'
 
 export function WorldRoute() {
   return (
