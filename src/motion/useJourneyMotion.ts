@@ -6,9 +6,9 @@ import { useReducedMotion } from './useReducedMotion'
 gsap.registerPlugin(ScrollTrigger)
 
 export const FORWARD_MOTION = {
-  sideTruck: { entry: -62, settle: -10, exit: 46 },
-  topTruck: { entry: 20, settle: 0, exit: -88 },
-  ship: { entry: 14, settle: 4, exit: -44 },
+  sideTruck: { entry: -110, settle: -78, exit: 20 },
+  topTruck: { entry: 52, settle: 22, exit: -70 },
+  ship: { entry: 45, settle: 22, exit: -12 },
 } as const
 
 export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
@@ -46,7 +46,7 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
           trigger: '.freight-sequence',
           start: 'top top',
           end: 'bottom bottom',
-          scrub: 0.35,
+          scrub: 0.7,
           invalidateOnRefresh: true,
           onUpdate: ({ progress }) => {
             if (!speedElement) return
@@ -59,31 +59,35 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
       sequence
         // 전진 방향 계약: 측면 트럭은 오른쪽, 탑뷰 차량과 선박은 위쪽으로 이동한다.
         .to('[data-sequence-progress]', { scaleX: 1, duration: 10 }, 0)
-        .fromTo('[data-stacker]', { xPercent: -24, scale: 0.86 }, { xPercent: 8, scale: 1, duration: 1.1 }, 0)
-        .to('[data-stacker]', { xPercent: 55, opacity: 0, scale: 1.08, duration: 0.65 }, 1.05)
-        .to('[data-sequence-copy="pickup"]', { y: -70, opacity: 0, duration: 0.48 }, 0.92)
-        .fromTo('[data-truck-side]', { xPercent: FORWARD_MOTION.sideTruck.entry, opacity: 0, scale: 0.96 }, { xPercent: FORWARD_MOTION.sideTruck.settle, opacity: 1, scale: 1, duration: 0.7 }, 1.1)
-        .to('.sequence-road--side', { opacity: 1, duration: 0.45 }, 1.25)
-        .fromTo('[data-sequence-copy="services"]', { y: 55, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55 }, 1.55)
-        .fromTo('[data-sequence-services]', { xPercent: 38, opacity: 0 }, { xPercent: 0, opacity: 1, duration: 0.7 }, 1.72)
-        .to('[data-truck-side]', { xPercent: FORWARD_MOTION.sideTruck.exit, duration: 2.25 }, 1.72)
-        .to('[data-sequence-services]', { xPercent: -38, duration: 2.25 }, 1.72)
-        .to('[data-sequence-copy="services"]', { y: -60, opacity: 0, duration: 0.48 }, 3.7)
+        .fromTo('[data-stacker]', { xPercent: -24, scale: 0.86 }, { xPercent: 8, scale: 1, duration: 1.1, ease: 'power2.out' }, 0)
+        .to('[data-stacker]', { xPercent: 55, opacity: 0, scale: 1.08, duration: 0.65, ease: 'power2.in' }, 1.05)
+        .to('[data-sequence-copy="pickup"]', { y: -70, opacity: 0, duration: 0.48, ease: 'power2.in' }, 0.92)
+        .fromTo('[data-truck-side]', { xPercent: FORWARD_MOTION.sideTruck.entry, opacity: 0, scale: 0.94 }, { xPercent: FORWARD_MOTION.sideTruck.settle, scale: 1, duration: 1, ease: 'power2.out' }, 1.25)
+        .to('[data-truck-side]', { opacity: 1, duration: 0.5, ease: 'power1.out' }, 1.45)
+        .to('.sequence-road--side', { opacity: 1, duration: 0.5, ease: 'power2.out' }, 1.28)
+        .fromTo('[data-sequence-copy="services"]', { y: 55, opacity: 0 }, { y: 0, opacity: 1, duration: 0.62, ease: 'power2.out' }, 1.45)
+        .fromTo('[data-sequence-services]', { xPercent: 30, opacity: 0 }, { xPercent: 0, opacity: 1, duration: 0.75, ease: 'power2.out' }, 1.55)
+        .to('[data-truck-side]', { xPercent: FORWARD_MOTION.sideTruck.exit, duration: 2, ease: 'power1.inOut' }, 2.15)
+        .to('[data-sequence-services]', { xPercent: -28, duration: 2.55, ease: 'power1.inOut' }, 1.65)
+        .to('.sequence-road--side span', { backgroundPositionX: '-420px', duration: 2, ease: 'none' }, 2.15)
+        .to('[data-sequence-copy="services"]', { y: -60, opacity: 0, duration: 0.44, ease: 'power2.in' }, 3.72)
         .to('[data-sequence-services]', { opacity: 0, duration: 0.4 }, 3.92)
-        .to('[data-truck-side]', { scale: 1.42, opacity: 0, duration: 0.58 }, 4.05)
+        .to('[data-truck-side]', { scale: 1.32, opacity: 0, duration: 0.52, ease: 'power2.in' }, 4.02)
         .to('.sequence-road--side', { opacity: 0, duration: 0.42 }, 4.05)
-        .fromTo('.sequence-road--top', { opacity: 0, scale: 1.24 }, { opacity: 1, scale: 1, duration: 0.62 }, 4.12)
-        .fromTo('[data-truck-top]', { opacity: 0, scale: 1.46, yPercent: FORWARD_MOTION.topTruck.entry }, { opacity: 1, scale: 1, yPercent: FORWARD_MOTION.topTruck.settle, duration: 0.62 }, 4.12)
-        .fromTo('[data-sequence-copy="milestone"]', { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.55 }, 4.46)
-        .to('[data-truck-top]', { yPercent: FORWARD_MOTION.topTruck.exit, scale: 0.72, duration: 1.75 }, 4.68)
-        .to('[data-sequence-copy="milestone"]', { x: -55, opacity: 0, duration: 0.45 }, 6.05)
+        .fromTo('.sequence-road--top', { opacity: 0, scale: 1.24 }, { opacity: 1, scale: 1, duration: 0.7, ease: 'power2.out' }, 4.14)
+        .fromTo('[data-truck-top]', { opacity: 0, scale: 1.42, yPercent: FORWARD_MOTION.topTruck.entry }, { opacity: 1, scale: 1, yPercent: FORWARD_MOTION.topTruck.settle, duration: 0.76, ease: 'power2.out' }, 4.16)
+        .fromTo('[data-sequence-copy="milestone"]', { x: -50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: 'power2.out' }, 4.48)
+        .to('[data-truck-top]', { yPercent: FORWARD_MOTION.topTruck.exit, scale: 0.74, duration: 1.45, ease: 'power1.inOut' }, 4.9)
+        .to('.sequence-road--top span', { backgroundPositionY: '360px', duration: 1.45, ease: 'none' }, 4.9)
+        .to('[data-sequence-copy="milestone"]', { x: -55, opacity: 0, duration: 0.45, ease: 'power2.in' }, 6.02)
         .to('.sequence-road--top', { opacity: 0, duration: 0.55 }, 6.18)
-        .to('[data-truck-top]', { opacity: 0, scale: 1.28, duration: 0.45 }, 6.18)
-        .to('.sequence-ocean', { opacity: 1, duration: 0.62 }, 6.18)
-        .fromTo('[data-ship-top]', { opacity: 0, scale: 1.95, yPercent: FORWARD_MOTION.ship.entry }, { opacity: 1, scale: 1.7, yPercent: FORWARD_MOTION.ship.settle, duration: 0.62 }, 6.2)
-        .to('[data-ship-top]', { scale: 0.48, yPercent: FORWARD_MOTION.ship.exit, duration: 2.65 }, 6.78)
-        .fromTo('.sequence-cloud', { opacity: 0, scale: 0.72 }, { opacity: 0.8, scale: 1.12, stagger: 0.12, duration: 0.7 }, 7.18)
-        .fromTo('[data-sequence-copy="ocean"]', { y: 65, opacity: 0 }, { y: 0, opacity: 1, duration: 0.65 }, 8.12)
+        .to('[data-truck-top]', { opacity: 0, scale: 1.22, duration: 0.45, ease: 'power2.in' }, 6.14)
+        .to('.sequence-ocean', { opacity: 1, duration: 0.68, ease: 'power2.out' }, 6.14)
+        .fromTo('[data-ship-top]', { opacity: 0, scale: 1.48, yPercent: FORWARD_MOTION.ship.entry }, { opacity: 1, scale: 1.28, yPercent: FORWARD_MOTION.ship.settle, duration: 0.82, ease: 'power2.out' }, 6.28)
+        .fromTo('.ocean-wake', { opacity: 0, scaleY: 0.35 }, { opacity: 0.8, scaleY: 1.08, duration: 1.4, ease: 'power2.out' }, 6.5)
+        .to('[data-ship-top]', { scale: 0.52, yPercent: FORWARD_MOTION.ship.exit, duration: 2.2, ease: 'power1.inOut' }, 7.06)
+        .fromTo('.sequence-cloud', { opacity: 0, scale: 0.72, xPercent: -8 }, { opacity: 0.78, scale: 1.12, xPercent: 7, stagger: 0.12, duration: 0.84, ease: 'power2.out' }, 7.22)
+        .fromTo('[data-sequence-copy="ocean"]', { y: 65, opacity: 0 }, { y: 0, opacity: 1, duration: 0.72, ease: 'power2.out' }, 8.12)
         .to('.sequence-grid', { opacity: 0, duration: 0.4 }, 6.1)
 
       gsap.fromTo(
