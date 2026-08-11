@@ -63,7 +63,8 @@ Two-column desktop form and one-column mobile form. Every control has a visible 
 ## Motion
 
 - GSAP ScrollTrigger controls reveal, parallax, transport motion, and route drawing.
-- Remotion renders the conveyor frame, belt slats, rollers, scanner, and parcel from one deterministic motion timeline.
+- Remotion renders the conveyor frame, belt slats, rollers, scanner, and parcel from one deterministic motion timeline and one shared perspective projection.
+- Parcel base corners and scanner supports are projected directly onto the belt plane; object-level rotation offsets are prohibited.
 - Animate only transform, opacity, and SVG dash offset during scroll.
 - Transport stage keeps at most the parcel plus one dominant vehicle visually active.
 - `prefers-reduced-motion` skips GSAP setup and shows completed static states.

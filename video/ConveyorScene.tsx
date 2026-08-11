@@ -6,7 +6,9 @@ const START = { x: -150, y: 690 }
 const END = { x: 1570, y: 315 }
 const DIRECTION = { x: END.x - START.x, y: END.y - START.y }
 const DIRECTION_LENGTH = Math.hypot(DIRECTION.x, DIRECTION.y)
-const NORMAL = { x: -DIRECTION.y / DIRECTION_LENGTH, y: DIRECTION.x / DIRECTION_LENGTH }
+const LATERAL_AXIS = { x: 0.38, y: Math.sqrt(1 - 0.38 ** 2) }
+const BELT_WIDTH = 322
+const SCANNER_PROGRESS = 0.7
 
 function pointAt(progress: number): Point {
   return {
@@ -15,17 +17,22 @@ function pointAt(progress: number): Point {
   }
 }
 
-function widthAt(progress: number) {
-  return 322 - progress * 172
+function depthScale(progress: number) {
+  return 1 - progress * 0.534
+}
+
+function project(progress: number, lateral = 0, height = 0): Point {
+  const center = pointAt(progress)
+  const scale = depthScale(progress)
+
+  return {
+    x: center.x + LATERAL_AXIS.x * lateral * scale,
+    y: center.y + LATERAL_AXIS.y * lateral * scale - height * scale,
+  }
 }
 
 function edgeAt(progress: number, side: -1 | 1): Point {
-  const center = pointAt(progress)
-  const halfWidth = widthAt(progress) / 2
-  return {
-    x: center.x + NORMAL.x * halfWidth * side,
-    y: center.y + NORMAL.y * halfWidth * side,
-  }
+  return project(progress, BELT_WIDTH / 2 * side)
 }
 
 function points(...items: Point[]) {
@@ -33,61 +40,173 @@ function points(...items: Point[]) {
 }
 
 function ConveyorBox({ progress, scan }: { progress: number; scan: number }) {
-  const position = pointAt(progress)
-  const scale = interpolate(progress, [0, 1], [1.32, 0.6])
-  const bounce = Math.sin(progress * Math.PI * 18) * 1.8
+  const halfLength = 78 / DIRECTION_LENGTH
+  const halfWidth = 58
+  const height = 126
+  const rearProgress = progress - halfLength
+  const frontProgress = progress + halfLength
+  const rearFar = project(rearProgress, -halfWidth)
+  const rearNear = project(rearProgress, halfWidth)
+  const frontFar = project(frontProgress, -halfWidth)
+  const frontNear = project(frontProgress, halfWidth)
+  const rearFarTop = project(rearProgress, -halfWidth, height)
+  const rearNearTop = project(rearProgress, halfWidth, height)
+  const frontFarTop = project(frontProgress, -halfWidth, height)
+  const frontNearTop = project(frontProgress, halfWidth, height)
+  const labelRearBottom = project(progress - 50 / DIRECTION_LENGTH, halfWidth + 1, 32)
+  const labelFrontBottom = project(progress + 50 / DIRECTION_LENGTH, halfWidth + 1, 32)
+  const labelFrontTop = project(progress + 50 / DIRECTION_LENGTH, halfWidth + 1, 68)
+  const labelRearTop = project(progress - 50 / DIRECTION_LENGTH, halfWidth + 1, 68)
+  const labelCenter = project(progress, halfWidth + 2, 50)
+  const scale = depthScale(progress)
   const shadowOpacity = interpolate(progress, [0, 1], [0.34, 0.18])
 
   return (
-    <g transform={`translate(${position.x} ${position.y + bounce}) rotate(-12.3) scale(${scale})`}>
-      <ellipse cx="0" cy="23" rx="92" ry="24" fill="#020a13" opacity={shadowOpacity} filter="url(#soft-shadow)" />
-      <g transform="translate(0 -58)">
-        <polygon points="-78,-36 22,-68 83,-30 -17,3" fill="#e7c797" />
-        <polygon points="-78,-36 -17,3 -17,83 -78,40" fill="#c79c60" />
-        <polygon points="-17,3 83,-30 83,49 -17,83" fill="#dcb578" />
-        <polygon points="-5,-59 15,-65 75,-28 56,-22" fill="#f2dfbd" opacity="0.92" />
-        <path d="M-17 3L83-30M-17 3L-78-36M-17 3V83" fill="none" stroke="#9c7544" strokeWidth="2" opacity="0.72" />
-        <g transform="translate(13 29) skewY(-18)">
-          <rect x="0" y="0" width="58" height="29" rx="3" fill="#f8f7f2" opacity="0.92" />
-          <text x="7" y="13" fill="#d51d2d" fontFamily="Arial, sans-serif" fontSize="11" fontWeight="900">K</text>
-          <text x="17" y="13" fill="#27a45d" fontFamily="Arial, sans-serif" fontSize="11" fontWeight="900">S</text>
-          <text x="27" y="13" fill="#1879d1" fontFamily="Arial, sans-serif" fontSize="11" fontWeight="900">E</text>
-          <text x="7" y="23" fill="#15324b" fontFamily="Arial, sans-serif" fontSize="5" fontWeight="800" letterSpacing="1">GLOBAL CARGO</text>
-        </g>
-        <path d="M-59 13h25M-59 22h17M-59 31h21" stroke="#6c4f2d" strokeWidth="3" opacity="0.54" />
-      </g>
-      <rect x="-94" y="-166" width="188" height="235" fill="#5de6ff" opacity={scan * 0.08} />
+    <g>
+      <polygon points={points(rearFar, frontFar, frontNear, rearNear)} fill="#020a13" opacity={shadowOpacity} filter="url(#contact-shadow)" />
+      <polygon points={points(rearFar, rearNear, rearNearTop, rearFarTop)} fill="#c8995e" stroke="#9b7040" strokeWidth={2 * scale} />
+      <polygon points={points(rearNear, frontNear, frontNearTop, rearNearTop)} fill="#dcb276" stroke="#9b7040" strokeWidth={2 * scale} />
+      <polygon points={points(rearFarTop, rearNearTop, frontNearTop, frontFarTop)} fill="#e9cc9b" stroke="#a57d4b" strokeWidth={2 * scale} />
+      <polygon
+        points={points(
+          project(rearProgress, -10, height + 0.5),
+          project(rearProgress, 10, height + 0.5),
+          project(frontProgress, 10, height + 0.5),
+          project(frontProgress, -10, height + 0.5),
+        )}
+        fill="#f4e0bc"
+        opacity="0.95"
+      />
+      <polygon points={points(labelRearBottom, labelFrontBottom, labelFrontTop, labelRearTop)} fill="#f7f7f2" opacity="0.96" />
+      <text
+        x={labelCenter.x}
+        y={labelCenter.y + 4 * scale}
+        textAnchor="middle"
+        fill="#17324a"
+        fontFamily="Arial, sans-serif"
+        fontSize={13 * scale}
+        fontWeight="900"
+        letterSpacing={1.8 * scale}
+        transform={`rotate(-12.3 ${labelCenter.x} ${labelCenter.y})`}
+      >
+        KSE CARGO
+      </text>
+      <polygon points={points(rearNear, frontNear, frontNearTop, rearNearTop)} fill="#5de6ff" opacity={scan * 0.09} />
     </g>
   )
 }
 
-function Scanner({ scan }: { scan: number }) {
-  const progress = 0.58
-  const center = pointAt(progress)
-  const width = widthAt(progress)
-  const angle = Math.atan2(DIRECTION.y, DIRECTION.x) * 180 / Math.PI
-  const scale = interpolate(progress, [0, 1], [1.1, 0.68])
+function scannerGeometry() {
+  const outerWidth = BELT_WIDTH / 2 + 24
+  const height = 250
+  const halfLength = 62 / DIRECTION_LENGTH
+  const entranceProgress = SCANNER_PROGRESS - halfLength
+  const exitProgress = SCANNER_PROGRESS + halfLength
+
+  return {
+    scale: depthScale(SCANNER_PROGRESS),
+    entranceFarBase: project(entranceProgress, -outerWidth),
+    entranceFarTop: project(entranceProgress, -outerWidth, height),
+    entranceNearBase: project(entranceProgress, outerWidth),
+    entranceNearTop: project(entranceProgress, outerWidth, height),
+    exitFarBase: project(exitProgress, -outerWidth),
+    exitFarTop: project(exitProgress, -outerWidth, height),
+    exitNearBase: project(exitProgress, outerWidth),
+    exitNearTop: project(exitProgress, outerWidth, height),
+    beamFarBottom: project(SCANNER_PROGRESS, -BELT_WIDTH / 2, 8),
+    beamNearBottom: project(SCANNER_PROGRESS, BELT_WIDTH / 2, 8),
+    beamNearTop: project(SCANNER_PROGRESS, BELT_WIDTH / 2, height - 18),
+    beamFarTop: project(SCANNER_PROGRESS, -BELT_WIDTH / 2, height - 18),
+    laserFar: project(SCANNER_PROGRESS, -BELT_WIDTH / 2, 76),
+    laserNear: project(SCANNER_PROGRESS, BELT_WIDTH / 2, 76),
+  }
+}
+
+function ScannerBack({ scan }: { scan: number }) {
+  const geometry = scannerGeometry()
+  const frameWidth = 21 * geometry.scale
+  const frameStroke = {
+    fill: 'none',
+    stroke: '#607c8c',
+    strokeWidth: frameWidth,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  }
 
   return (
-    <g transform={`translate(${center.x} ${center.y}) rotate(${angle}) scale(${scale})`}>
-      <path
-        d={`M${-width / 2 - 18} 74V-178Q${-width / 2 - 18} -214 ${-width / 2 + 18} -214H${width / 2 - 18}Q${width / 2 + 18} -214 ${width / 2 + 18} -178V74`}
-        fill="none"
-        stroke="#7b93a5"
-        strokeWidth="22"
+    <g>
+      <polygon points={points(geometry.beamFarBottom, geometry.beamNearBottom, geometry.beamNearTop, geometry.beamFarTop)} fill="url(#scan-beam)" opacity={scan * 0.32} />
+      <polyline
+        points={points(geometry.entranceFarBase, geometry.entranceFarTop, geometry.entranceNearTop)}
+        {...frameStroke}
       />
-      <path
-        d={`M${-width / 2 - 18} 74V-178Q${-width / 2 - 18} -214 ${-width / 2 + 18} -214H${width / 2 - 18}Q${width / 2 + 18} -214 ${width / 2 + 18} -178V74`}
-        fill="none"
-        stroke="#d5e7ef"
-        strokeWidth="5"
-        opacity="0.8"
+      <polyline
+        points={points(geometry.exitFarBase, geometry.exitFarTop, geometry.exitNearTop)}
+        {...frameStroke}
       />
-      <rect x={-width / 2 + 16} y="-203" width={width - 32} height="42" rx="8" fill="#102b3d" />
-      <text x="0" y="-176" textAnchor="middle" fill="#a6efff" fontFamily="Arial, sans-serif" fontSize="16" fontWeight="800" letterSpacing="4">KSE SMART SCAN</text>
-      <rect x={-width / 2 + 3} y="-158" width={width - 6} height="218" fill="url(#scan-beam)" opacity={scan * 0.58} />
-      <line x1={-width / 2} y1="-40" x2={width / 2} y2="-40" stroke="#71efff" strokeWidth={3 + scan * 5} opacity={0.12 + scan * 0.88} filter="url(#cyan-glow)" />
-      <circle cx={-width / 2 - 18} cy="-152" r="7" fill={scan > 0.35 ? '#5df2ab' : '#587080'} />
+      <polygon
+        points={points(geometry.entranceFarTop, geometry.entranceNearTop, geometry.exitNearTop, geometry.exitFarTop)}
+        fill="#203b4b"
+        fillOpacity="0.82"
+        stroke="#7f9aa8"
+        strokeWidth={frameWidth * 0.42}
+        strokeLinejoin="round"
+      />
+      <polyline points={points(geometry.entranceFarBase, geometry.entranceFarTop, geometry.entranceNearTop)} fill="none" stroke="#d7e8ef" strokeWidth={frameWidth * 0.24} strokeLinecap="round" strokeLinejoin="round" opacity="0.8" />
+      <polyline points={points(geometry.exitFarBase, geometry.exitFarTop, geometry.exitNearTop)} fill="none" stroke="#d7e8ef" strokeWidth={frameWidth * 0.24} strokeLinecap="round" strokeLinejoin="round" opacity="0.72" />
+      <line x1={geometry.entranceFarTop.x} y1={geometry.entranceFarTop.y} x2={geometry.exitFarTop.x} y2={geometry.exitFarTop.y} stroke="#b7d1dc" strokeWidth={frameWidth * 0.22} opacity="0.72" />
+    </g>
+  )
+}
+
+function ScannerFront({ scan }: { scan: number }) {
+  const geometry = scannerGeometry()
+  const frameWidth = 21 * geometry.scale
+  const lightPosition = project(SCANNER_PROGRESS + 62 / DIRECTION_LENGTH, BELT_WIDTH / 2 + 24, 176)
+
+  return (
+    <g>
+      <line
+        x1={geometry.entranceNearBase.x}
+        y1={geometry.entranceNearBase.y}
+        x2={geometry.entranceNearTop.x}
+        y2={geometry.entranceNearTop.y}
+        stroke="#607c8c"
+        strokeWidth={frameWidth}
+        strokeLinecap="round"
+      />
+      <line
+        x1={geometry.exitNearBase.x}
+        y1={geometry.exitNearBase.y}
+        x2={geometry.exitNearTop.x}
+        y2={geometry.exitNearTop.y}
+        stroke="#607c8c"
+        strokeWidth={frameWidth}
+        strokeLinecap="round"
+      />
+      <line
+        x1={geometry.entranceNearBase.x}
+        y1={geometry.entranceNearBase.y}
+        x2={geometry.entranceNearTop.x}
+        y2={geometry.entranceNearTop.y}
+        stroke="#d7e8ef"
+        strokeWidth={frameWidth * 0.28}
+        strokeLinecap="round"
+        opacity="0.82"
+      />
+      <line x1={geometry.exitNearBase.x} y1={geometry.exitNearBase.y} x2={geometry.exitNearTop.x} y2={geometry.exitNearTop.y} stroke="#d7e8ef" strokeWidth={frameWidth * 0.28} strokeLinecap="round" opacity="0.76" />
+      <line x1={geometry.entranceNearTop.x} y1={geometry.entranceNearTop.y} x2={geometry.exitNearTop.x} y2={geometry.exitNearTop.y} stroke="#a9c8d5" strokeWidth={frameWidth * 0.38} strokeLinecap="round" />
+      <line
+        x1={geometry.laserFar.x}
+        y1={geometry.laserFar.y}
+        x2={geometry.laserNear.x}
+        y2={geometry.laserNear.y}
+        stroke="#71efff"
+        strokeWidth={(3 + scan * 5) * geometry.scale}
+        opacity={0.1 + scan * 0.9}
+        filter="url(#cyan-glow)"
+      />
+      <circle cx={lightPosition.x} cy={lightPosition.y} r={7 * geometry.scale} fill={scan > 0.35 ? '#5df2ab' : '#587080'} />
     </g>
   )
 }
@@ -96,21 +215,18 @@ export function ConveyorScene({ mobile = false }: { mobile?: boolean }) {
   const frame = useCurrentFrame()
   const { durationInFrames, height, width } = useVideoConfig()
   const normalizedFrame = frame / (durationInFrames - 1)
-  const boxProgress = interpolate(normalizedFrame, [0, 1], [-0.1, 1.1], {
+  const boxProgress = interpolate(normalizedFrame, [0, 1], mobile ? [0.16, 0.84] : [-0.1, 1.1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   })
-  const beltTravel = normalizedFrame * 1.2
+  const beltTravel = normalizedFrame * (mobile ? 1 : 1.2)
   const rollerRotation = normalizedFrame * 1800
-  const scan = interpolate(Math.abs(boxProgress - 0.58), [0.015, 0.12], [1, 0], {
+  const scan = interpolate(Math.abs(boxProgress - SCANNER_PROGRESS), [0.015, 0.12], [1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   })
   const cameraScale = interpolate(normalizedFrame, [0, 0.5, 1], [1.025, 1.055, 1.035])
-  const mobileFocusX = interpolate(boxProgress, [-0.1, 0.3, 0.58, 1.1], [390, 570, 830, 1080], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
-  })
+  const mobileFocusX = pointAt(boxProgress).x
   const mobileScale = height / 810 * cameraScale
   const mobileOffsetX = width / 2 - mobileFocusX * mobileScale
   const nearBack = edgeAt(0, -1)
@@ -157,7 +273,7 @@ export function ConveyorScene({ mobile = false }: { mobile?: boolean }) {
               <stop offset="0" stopColor="#65dfff" stopOpacity="0.24" />
               <stop offset="1" stopColor="#65dfff" stopOpacity="0" />
             </radialGradient>
-            <filter id="soft-shadow"><feGaussianBlur stdDeviation="11" /></filter>
+            <filter id="contact-shadow"><feGaussianBlur stdDeviation="5" /></filter>
             <filter id="cyan-glow"><feGaussianBlur stdDeviation="7" /></filter>
             <pattern id="floor-grid" width="90" height="90" patternUnits="userSpaceOnUse" patternTransform="skewX(-18)">
               <path d="M90 0H0V90" fill="none" stroke="#7fc6df" strokeOpacity="0.075" strokeWidth="1" />
@@ -196,17 +312,17 @@ export function ConveyorScene({ mobile = false }: { mobile?: boolean }) {
 
           {Array.from({ length: 13 }, (_, index) => {
             const progress = (index / 13 + beltTravel) % 1
-            const center = pointAt(progress)
-            const markerScale = interpolate(progress, [0, 1], [1.25, 0.5])
+            const tip = project(progress + 14 / DIRECTION_LENGTH)
+            const left = project(progress - 9 / DIRECTION_LENGTH, -13)
+            const right = project(progress - 9 / DIRECTION_LENGTH, 13)
             return (
-              <path
+              <polyline
                 key={index}
-                d="M-14 7L0-7L14 7"
+                points={points(left, tip, right)}
                 fill="none"
                 stroke="#5fe2ff"
-                strokeWidth="3"
+                strokeWidth={3 * depthScale(progress)}
                 opacity="0.22"
-                transform={`translate(${center.x} ${center.y}) rotate(-12.3) scale(${markerScale})`}
               />
             )
           })}
@@ -236,15 +352,10 @@ export function ConveyorScene({ mobile = false }: { mobile?: boolean }) {
             )
           })}
 
-          <Scanner scan={scan} />
+          <ScannerBack scan={scan} />
           <ConveyorBox progress={boxProgress} scan={scan} />
+          <ScannerFront scan={scan} />
 
-          <g transform="translate(1038 110)">
-            <rect width="310" height="74" rx="12" fill="#071522" fillOpacity="0.8" stroke="#8adff3" strokeOpacity="0.22" />
-            <circle cx="28" cy="25" r="5" fill="#5cefa6" />
-            <text x="45" y="30" fill="#bcefff" fontSize="13" fontWeight="800" letterSpacing="2.2">LIVE SORTING LINE</text>
-            <text x="28" y="55" fill="#6e92a5" fontSize="11" fontWeight="700" letterSpacing="1.6">BELT + CARGO / SYNCED MOTION</text>
-          </g>
           <rect x="0" y="0" width="1440" height="810" fill="none" stroke="#78dfff" strokeOpacity="0.08" strokeWidth="24" />
         </svg>
       </div>
