@@ -13,7 +13,7 @@ export function ContactSection() {
     <section id="contact" className="contact" aria-labelledby="contact-title">
       <div className="section-shell contact-grid">
         <div className="contact-copy" data-reveal>
-          <p className="section-kicker"><span>07</span><span>START YOUR ROUTE</span></p>
+          <p className="section-kicker"><span>09</span><span>START YOUR ROUTE</span></p>
           <h2 id="contact-title">다음 시장으로 가는 길,<br />KSE가 함께 설계합니다</h2>
           <p>목적지와 물량을 알려주시면 가장 적합한 풀필먼트와 운송 경로를 제안해 드립니다.</p>
         </div>
@@ -26,6 +26,20 @@ export function ContactSection() {
           </div>
         ) : (
           <form className="quote-form" onSubmit={submit} data-reveal>
+            <label>
+              <span>회사명</span>
+              <input name="company" type="text" required placeholder="회사명을 입력하세요" />
+            </label>
+            <label>
+              <span>판매 국가</span>
+              <select name="sales-country" required defaultValue="">
+                <option value="" disabled>현재 판매 국가를 선택하세요</option>
+                <option>한국</option>
+                <option>일본</option>
+                <option>복수 국가</option>
+                <option>판매 준비 중</option>
+              </select>
+            </label>
             <label>
               <span>목적지</span>
               <select name="destination" required defaultValue="">
@@ -53,6 +67,10 @@ export function ContactSection() {
             <label>
               <span>이메일</span>
               <input name="email" type="email" required placeholder="name@company.com" />
+            </label>
+            <label className="quote-form-wide">
+              <span>판매 사이트 URL <small>(선택)</small></span>
+              <input name="store-url" type="url" placeholder="https://" />
             </label>
             <button className="button button--primary" type="submit">
               물류 상담 시작하기 <ArrowRight aria-hidden="true" />

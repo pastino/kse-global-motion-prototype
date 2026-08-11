@@ -2,6 +2,8 @@ import { useRef } from 'react'
 import { SiteHeader } from './components/SiteHeader'
 import { useJourneyMotion } from './motion/useJourneyMotion'
 import { ContactSection } from './sections/ContactSection'
+import { BrandFilmSection } from './sections/BrandFilmSection'
+import { CapabilitiesSection } from './sections/CapabilitiesSection'
 import { FreightSequenceSection } from './sections/FreightSequenceSection'
 import { HeroSection } from './sections/HeroSection'
 import { JapanProofSection } from './sections/JapanProofSection'
@@ -18,8 +20,10 @@ export default function App() {
       <main id="main-content">
         <HeroSection />
         <FreightSequenceSection />
+        <CapabilitiesSection />
         <JapanProofSection />
         <NetworkSection />
+        <BrandFilmSection />
         <ContactSection />
       </main>
     </div>

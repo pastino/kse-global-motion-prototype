@@ -2,7 +2,7 @@ import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 
 const links = [
-  { href: '#journey', label: '서비스' },
+  { href: '#capabilities', label: '서비스' },
   { href: '#japan-proof', label: '한일 특송' },
   { href: '#network', label: '글로벌 네트워크' },
 ]

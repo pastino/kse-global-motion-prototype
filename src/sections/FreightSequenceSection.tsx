@@ -69,6 +69,38 @@ export function FreightSequenceSection() {
         </div>
       </div>
 
+      <div className="sequence-mobile" aria-label="KSE 물류 여정">
+        <div className="section-shell sequence-mobile-intro" data-reveal>
+          <p>ONE SHIPMENT, ONE WORLD</p>
+          <h2>핵심 인계 장면만<br />빠르게 이어집니다.</h2>
+          <span>스크롤할 때마다 같은 화물이 다음 운송 단계로 넘어갑니다.</span>
+        </div>
+        <div className="sequence-mobile-scene sequence-mobile-scene--warehouse" data-reveal>
+          <div className="section-shell sequence-mobile-copy">
+            <span>01 · FULFILLMENT</span>
+            <h3>주문이 모이면<br />출고가 시작됩니다.</h3>
+            <p>OMS 주문 수집부터 입고·검수·피킹·포장까지.</p>
+          </div>
+          <img src="/assets/generated/reach-stacker-v2.webp" alt="컨테이너를 옮기는 리치 스태커" loading="lazy" decoding="async" />
+        </div>
+        <div className="sequence-mobile-scene sequence-mobile-scene--road" data-reveal>
+          <div className="section-shell sequence-mobile-copy">
+            <span>02 · CUSTOMS & ROAD</span>
+            <h3>통관을 지나<br />항만으로.</h3>
+            <p>수출 신고와 육상 운송을 하나의 일정으로 연결합니다.</p>
+          </div>
+          <img src="/assets/generated/freight-truck-side-v2.webp" alt="항만으로 이동하는 화물 트럭" loading="lazy" decoding="async" />
+        </div>
+        <div className="sequence-mobile-scene sequence-mobile-scene--ocean" data-reveal>
+          <div className="section-shell sequence-mobile-copy">
+            <span>03 · AIR & OCEAN</span>
+            <h3>가장 맞는 경로로<br />전 세계까지.</h3>
+            <p>한·일 자체 인프라에서 글로벌 파트너 항로로 이어집니다.</p>
+          </div>
+          <img src="/assets/generated/cargo-ship-top-v2.webp" alt="국제 항로를 운항하는 화물선" loading="lazy" decoding="async" />
+        </div>
+      </div>
+
       <div className="sequence-fallback section-shell">
         <p>ONE SHIPMENT, ONE WORLD</p>
         <h2>입고에서 현지 배송까지, 하나의 화물이 끊김 없이 이어집니다.</h2>

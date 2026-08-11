@@ -8,6 +8,8 @@ describe('ContactSection', () => {
     const user = userEvent.setup()
     render(<ContactSection />)
 
+    await user.type(screen.getByLabelText('회사명'), 'KSE 테스트')
+    await user.selectOptions(screen.getByLabelText('판매 국가'), '한국')
     await user.selectOptions(screen.getByLabelText('목적지'), '일본')
     await user.selectOptions(screen.getByLabelText('화물 유형'), '이커머스 상품')
     await user.type(screen.getByLabelText('월 예상 물량'), '월 3,000건')

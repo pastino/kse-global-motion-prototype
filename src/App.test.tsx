@@ -38,4 +38,12 @@ describe('KSE 글로벌 프로토타입', () => {
     expect(screen.getByText(/두 거점에서 시작해/)).toBeInTheDocument()
     expect(screen.getAllByText('OCEAN').length).toBeGreaterThan(0)
   })
+
+  it('실제 KSE 운영 서비스와 현장 근거를 함께 제공한다', () => {
+    render(<App />)
+    expect(screen.getByRole('heading', { name: /전체 운영을 맡깁니다/ })).toBeInTheDocument()
+    expect(screen.getByText(/자체 OMS와 WMS/)).toBeInTheDocument()
+    expect(screen.getAllByText(/냉장 2–10°C/).length).toBeGreaterThan(0)
+    expect(screen.getByRole('link', { name: /KSE 한국어 홍보 영상/ })).toHaveAttribute('href', expect.stringContaining('youtube.com'))
+  })
 })
