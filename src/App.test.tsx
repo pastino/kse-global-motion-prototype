@@ -34,7 +34,7 @@ describe('KSE 글로벌 프로토타입', () => {
 
   it('화물이 운송수단 사이에서 이어지는 모션 서사를 제공한다', () => {
     render(<App />)
-    expect(screen.getByRole('heading', { name: /한 번 맡긴 화물은/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /주문이 들어오면/ })).toBeInTheDocument()
     expect(screen.getByText(/두 거점에서 시작해/)).toBeInTheDocument()
     expect(screen.getAllByText('OCEAN').length).toBeGreaterThan(0)
   })

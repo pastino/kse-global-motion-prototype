@@ -5,17 +5,43 @@ const services = [
   ['04', 'OCEAN', '전 세계 파트너 항로 연결'],
 ]
 
+function SortingRail({ animated = false, mobile = false }: { animated?: boolean; mobile?: boolean }) {
+  return (
+    <div className={mobile ? 'sorting-system sorting-system--mobile' : 'sorting-system'} data-sorter={animated ? true : undefined} aria-hidden="true">
+      <div className="sorting-rail sorting-rail--back"><span /></div>
+      <div className="sorting-rail sorting-rail--main"><span /></div>
+      <div className="sorting-rail sorting-rail--branch"><span /></div>
+      <div className="sorting-gate">
+        <i data-scan-beam={animated ? true : undefined} />
+        <b>SCAN</b>
+      </div>
+      <div className="sorting-parcel sorting-parcel--ghost sorting-parcel--ghost-one" data-parcel-ghost={animated ? true : undefined}><span /></div>
+      <div className="sorting-parcel sorting-parcel--ghost sorting-parcel--ghost-two" data-parcel-ghost={animated ? true : undefined}><span /></div>
+      <div className="sorting-parcel sorting-parcel--primary" data-parcel-primary={animated ? true : undefined}>
+        <span>KSE</span>
+        <small>000381</small>
+      </div>
+      <div className="sorting-status" data-sorting-status={animated ? true : undefined}>
+        <span><i /> OMS ORDER</span>
+        <span><i /> WEIGHT OK</span>
+        <span><i /> ROUTE READY</span>
+      </div>
+    </div>
+  )
+}
+
 export function FreightSequenceSection() {
   return (
     <section id="journey" className="freight-sequence" aria-labelledby="sequence-title">
       <div className="sequence-sticky">
         <div className="sequence-stage" aria-hidden="true">
           <div className="sequence-grid" />
+          <div className="sorting-backdrop" data-sorter-backdrop />
           <div className="sequence-road sequence-road--side"><span /><span /><span /></div>
           <div className="sequence-road sequence-road--top"><span /><span /><span /></div>
           <div className="sequence-ocean"><span className="ocean-wake ocean-wake--left" /><span className="ocean-wake ocean-wake--right" /></div>
 
-          <img data-stacker className="sequence-vehicle sequence-stacker" src="/assets/generated/reach-stacker-v2.webp" alt="" decoding="async" />
+          <SortingRail animated />
           <img data-truck-side className="sequence-vehicle sequence-truck-side" src="/assets/generated/freight-truck-side-v2.webp" alt="" decoding="async" />
           <img data-truck-top className="sequence-vehicle sequence-truck-top" src="/assets/generated/freight-truck-top-v2.webp" alt="" decoding="async" />
           <img data-ship-top className="sequence-vehicle sequence-ship-top" src="/assets/generated/cargo-ship-top-v2.webp" alt="" decoding="async" />
@@ -32,9 +58,9 @@ export function FreightSequenceSection() {
           </div>
 
           <div className="sequence-copy sequence-copy--pickup" data-sequence-copy="pickup">
-            <p>01 / ONE CONTINUOUS FLOW</p>
-            <h2 id="sequence-title">한 번 맡긴 화물은<br />멈추지 않습니다.</h2>
-            <span>입고부터 선적까지 같은 흐름 안에서 움직입니다.</span>
+            <p>01 / OMS TO OUTBOUND</p>
+            <h2 id="sequence-title">주문이 들어오면<br />물류가 바로 움직입니다.</h2>
+            <span>OMS 주문 수집부터 분류·검수·출고까지 같은 레일 위에서 이어집니다.</span>
           </div>
 
           <div className="sequence-copy sequence-copy--services" data-sequence-copy="services">
@@ -81,7 +107,7 @@ export function FreightSequenceSection() {
             <h3>주문이 모이면<br />출고가 시작됩니다.</h3>
             <p>OMS 주문 수집부터 입고·검수·피킹·포장까지.</p>
           </div>
-          <img src="/assets/generated/reach-stacker-v2.webp" alt="컨테이너를 옮기는 리치 스태커" loading="lazy" decoding="async" />
+          <SortingRail mobile />
         </div>
         <div className="sequence-mobile-scene sequence-mobile-scene--road" data-reveal>
           <div className="section-shell sequence-mobile-copy">
