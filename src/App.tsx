@@ -1,13 +1,14 @@
 import { useRef } from 'react'
 import { SiteHeader } from './components/SiteHeader'
+import { SiteFooter } from './components/SiteFooter'
 import { useJourneyMotion } from './motion/useJourneyMotion'
-import { ContactSection } from './sections/ContactSection'
 import { BrandFilmSection } from './sections/BrandFilmSection'
 import { CapabilitiesSection } from './sections/CapabilitiesSection'
 import { FreightSequenceSection } from './sections/FreightSequenceSection'
 import { HeroSection } from './sections/HeroSection'
 import { JapanProofSection } from './sections/JapanProofSection'
 import { NetworkSection } from './sections/NetworkSection'
+import { OperationsInsightSection } from './sections/OperationsInsightSection'
 
 export default function App() {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -23,9 +24,10 @@ export default function App() {
         <CapabilitiesSection />
         <JapanProofSection />
         <NetworkSection />
+        <OperationsInsightSection />
         <BrandFilmSection />
-        <ContactSection />
       </main>
+      <SiteFooter />
     </div>
   )
 }

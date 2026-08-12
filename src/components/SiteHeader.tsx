@@ -1,5 +1,6 @@
 import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
+import { assetUrl } from '../lib/asset-url'
 
 const links = [
   { href: '#capabilities', label: '서비스' },
@@ -13,7 +14,7 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <a className="brand" href="#hero" aria-label="KSE 홈">
-        <img src="/assets/kse-logo.png" alt="KSE 국제로지스틱" />
+        <img src={assetUrl('assets/kse-logo.png')} alt="KSE 국제로지스틱" />
       </a>
       <button
         className="menu-button"
@@ -31,7 +32,13 @@ export function SiteHeader() {
             {link.label}
           </a>
         ))}
-        <a className="header-cta" href="#contact" onClick={() => setOpen(false)}>
+        <a
+          className="header-cta"
+          href="https://www.kseexpress.com/155"
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => setOpen(false)}
+        >
           물류 상담
         </a>
       </nav>

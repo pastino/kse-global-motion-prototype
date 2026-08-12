@@ -1,4 +1,5 @@
 import { ArrowRight } from 'lucide-react'
+import { assetUrl } from '../lib/asset-url'
 
 export function JapanProofSection() {
   return (
@@ -8,7 +9,14 @@ export function JapanProofSection() {
           <p className="section-kicker"><span>06</span><span>PROVEN IN JAPAN</span></p>
           <h2 id="japan-proof-title">글로벌을 말하기 전에<br />한일 노선에서 증명했습니다</h2>
           <p>한국의 풀필먼트와 일본의 자체 인프라를 직접 연결해 5일 이내 도착보장 서비스를 운영합니다.</p>
-          <a className="text-link text-link--dark" href="#contact">한일 특송 상담 <ArrowRight aria-hidden="true" /></a>
+          <a
+            className="text-link text-link--dark"
+            href="https://www.kseexpress.com/155"
+            target="_blank"
+            rel="noreferrer"
+          >
+            한일 특송 상담 <ArrowRight aria-hidden="true" />
+          </a>
         </div>
         <div className="japan-route" data-reveal>
           <div className="route-cities">
@@ -17,7 +25,7 @@ export function JapanProofSection() {
           </div>
           <div className="route-bridge">
             <span className="route-pulse" />
-            <img src="/assets/generated/cargo-ship.webp" alt="" loading="lazy" decoding="async" />
+            <img src={assetUrl('assets/generated/cargo-ship.webp')} alt="" loading="lazy" decoding="async" />
           </div>
           <div className="proof-numbers">
             <div><strong>D+3</strong><span>부산센터 기준</span></div>

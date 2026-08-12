@@ -1,11 +1,12 @@
 import { Play } from 'lucide-react'
+import { assetUrl } from '../lib/asset-url'
 
 export function BrandFilmSection() {
   return (
     <section className="brand-film" aria-labelledby="brand-film-title">
       <div className="brand-film-media">
         <img
-          src="/assets/official/kse-brand-film.webp"
+          src={assetUrl('assets/official/kse-brand-film.webp')}
           alt="KSE 물류센터 앞에 나란히 선 배송 차량"
           loading="lazy"
           decoding="async"
@@ -18,7 +19,7 @@ export function BrandFilmSection() {
           </div>
           <a
             className="film-button"
-            href="https://www.youtube.com/watch?v=2G4-7xoTpIc"
+            href="https://www.youtube.com/watch?v=ATNGwAyBylo"
             target="_blank"
             rel="noreferrer"
             aria-label="KSE 한국어 홍보 영상 새 창에서 보기"

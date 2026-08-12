@@ -1,4 +1,5 @@
 import { ArrowUpRight } from 'lucide-react'
+import { assetUrl } from '../lib/asset-url'
 
 const capabilities = [
   {
@@ -39,7 +40,7 @@ export function CapabilitiesSection() {
       <div className="section-shell capabilities-proof" data-reveal>
         <figure className="hub-photo">
           <img
-            src="/assets/official/kse-japan-hub.webp"
+            src={assetUrl('assets/official/kse-japan-hub.webp')}
             alt="일본 KSE 물류 거점 앞에 대기 중인 KSE 배송 차량"
             loading="lazy"
             decoding="async"

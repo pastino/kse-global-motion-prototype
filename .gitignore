@@ -5,3 +5,9 @@ vite.config.js
 vite.config.d.ts
 .DS_Store
 .impeccable/
+tmp/
+public/assets/generated/conveyor-cleanplate-aligned-v4.webp
+public/assets/generated/conveyor-cleanplate-centered-v5.webp
+public/assets/generated/conveyor-cleanplate-shallow-v6.webp
+public/assets/generated/parcel-shallow-v7.png
+public/assets/generated/parcel-shallow-v7-trimmed.png

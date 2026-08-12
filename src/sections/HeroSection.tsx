@@ -13,7 +13,7 @@ export function HeroSection() {
         </h1>
         <p className="hero-lead">전 세계를 연결하는 파트너 네트워크.</p>
         <div className="hero-actions">
-          <a className="button button--primary" href="#contact">
+          <a className="button button--primary" href="https://www.kseexpress.com/155" target="_blank" rel="noreferrer">
             글로벌 물류 상담 <ArrowUpRight aria-hidden="true" />
           </a>
           <a className="text-link" href="#journey">

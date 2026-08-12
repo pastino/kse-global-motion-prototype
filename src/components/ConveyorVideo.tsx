@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
+import { assetUrl } from '../lib/asset-url'
 
-const DESKTOP_VIDEO_SOURCE = '/assets/generated/conveyor-sequence.mp4'
-const MOBILE_VIDEO_SOURCE = '/assets/generated/conveyor-sequence-mobile.mp4'
+const DESKTOP_VIDEO_SOURCE = assetUrl('assets/generated/conveyor-sequence.mp4')
+const MOBILE_VIDEO_SOURCE = assetUrl('assets/generated/conveyor-sequence-mobile.mp4')
 
 export function ConveyorVideo({ mobile = false }: { mobile?: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -44,8 +45,8 @@ export function ConveyorVideo({ mobile = false }: { mobile?: boolean }) {
       playsInline
       preload={mobile ? 'metadata' : 'auto'}
       poster={mobile
-        ? '/assets/generated/conveyor-sequence-mobile-poster.webp'
-        : '/assets/generated/conveyor-sequence-poster.webp'}
+        ? assetUrl('assets/generated/conveyor-sequence-mobile-poster.webp')
+        : assetUrl('assets/generated/conveyor-sequence-poster.webp')}
       aria-hidden="true"
     >
       <source src={mobile ? MOBILE_VIDEO_SOURCE : DESKTOP_VIDEO_SOURCE} type="video/mp4" />

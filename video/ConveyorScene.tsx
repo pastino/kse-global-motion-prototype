@@ -1,178 +1,186 @@
 import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from 'remotion'
+import {
+  BELT_WIDTH,
+  END,
+  PARCEL_HALF_WIDTH,
+  PARCEL_HEIGHT,
+  SCANNER_PROGRESS,
+  START,
+  depthScale,
+  edgeAt,
+  getBeltCueProgress,
+  getParcelPose,
+  getParcelProgress,
+  pointAt,
+  points,
+  project,
+} from './conveyorGeometry'
 
-type Point = { x: number; y: number }
+const CLEAN_PLATE_ASSET = staticFile('assets/generated/conveyor-cleanplate-shallow-v7.webp')
+const KSE_LOGO_ASSET = staticFile('assets/kse-logo.png')
 
-const START = { x: -150, y: 690 }
-const END = { x: 1570, y: 315 }
-const DIRECTION = { x: END.x - START.x, y: END.y - START.y }
-const DIRECTION_LENGTH = Math.hypot(DIRECTION.x, DIRECTION.y)
-const LATERAL_AXIS = { x: 0.38, y: Math.sqrt(1 - 0.38 ** 2) }
-const BELT_WIDTH = 322
-const SCANNER_PROGRESS = 0.67
-const CLEAN_PLATE_ASSET = staticFile('assets/generated/conveyor-cleanplate-scanner-photoreal-v3.webp')
-const PARCEL_ASSET = staticFile('assets/generated/parcel-photoreal-cutout-v2.png')
+function MovingBeltSurface({ frame, durationInFrames }: { frame: number; durationInFrames: number }) {
+  return (
+    <g clipPath="url(#belt-surface-mask)">
+      {Array.from({ length: 16 }, (_, index) => {
+        const progress = getBeltCueProgress(index, frame, durationInFrames)
+        const rear = Math.max(0, progress - 0.012)
+        const front = Math.min(1, progress + 0.012)
+        const rearLeft = edgeAt(rear, -1)
+        const rearRight = edgeAt(rear, 1)
+        const frontLeft = edgeAt(front, -1)
+        const frontRight = edgeAt(front, 1)
+        const opacity = interpolate(progress, [0, 0.3, 1], [0.2, 0.14, 0.05])
 
-function pointAt(progress: number): Point {
-  return {
-    x: START.x + DIRECTION.x * progress,
-    y: START.y + DIRECTION.y * progress,
-  }
-}
+        return (
+          <polygon
+            key={`belt-band-${index}`}
+            points={points(rearLeft, frontLeft, frontRight, rearRight)}
+            fill="url(#belt-moving-band)"
+            opacity={opacity}
+          />
+        )
+      })}
 
-function depthScale(progress: number) {
-  return 1 - progress * 0.534
-}
+      {Array.from({ length: 16 }, (_, index) => {
+        const progress = getBeltCueProgress(index + 0.5, frame, durationInFrames)
+        const left = edgeAt(progress, -0.92)
+        const right = edgeAt(progress, 0.92)
 
-function project(progress: number, lateral = 0, height = 0): Point {
-  const center = pointAt(progress)
-  const scale = depthScale(progress)
-
-  return {
-    x: center.x + LATERAL_AXIS.x * lateral * scale,
-    y: center.y + LATERAL_AXIS.y * lateral * scale - height * scale,
-  }
-}
-
-function edgeAt(progress: number, side: -1 | 1): Point {
-  return project(progress, BELT_WIDTH / 2 * side)
-}
-
-function points(...items: Point[]) {
-  return items.map(({ x, y }) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ')
+        return (
+          <line
+            key={`belt-seam-${index}`}
+            x1={left.x}
+            y1={left.y}
+            x2={right.x}
+            y2={right.y}
+            stroke="#dcecf2"
+            strokeWidth={interpolate(progress, [0, 1], [3.2, 0.8])}
+            opacity={interpolate(progress, [0, 0.7, 1], [0.18, 0.11, 0.04])}
+          />
+        )
+      })}
+    </g>
+  )
 }
 
 function ParcelShadow({ progress }: { progress: number }) {
-  const halfLength = 72 / DIRECTION_LENGTH
-  const halfWidth = 54
+  const scale = depthScale(progress)
+  const halfLength = 0.051
+  const halfWidth = 51
   const rearFar = project(progress - halfLength, -halfWidth)
   const rearNear = project(progress - halfLength, halfWidth)
   const frontFar = project(progress + halfLength, -halfWidth)
   const frontNear = project(progress + halfLength, halfWidth)
-  const scale = depthScale(progress)
-  const shadowOpacity = interpolate(progress, [0, 1], [0.42, 0.24])
 
   return (
     <polygon
       points={points(rearFar, frontFar, frontNear, rearNear)}
-      fill="#02070b"
-      opacity={shadowOpacity}
+      fill="#010509"
+      opacity={interpolate(progress, [0, 1], [0.46, 0.2])}
       filter="url(#contact-shadow)"
-      transform={`translate(${3 * scale} ${12 * scale})`}
+      transform={`translate(${4 * scale} ${10 * scale})`}
     />
   )
 }
 
-function PhotorealParcel({ progress, scan }: { progress: number; scan: number }) {
-  const center = pointAt(progress)
-  const scale = depthScale(progress)
-  const width = 258 * scale
-  const height = width * 871 / 1181
-  const x = center.x - width / 2
-  const y = center.y - height + 19 * scale
-  const opacity = interpolate(progress, [-0.1, -0.025, 1.025, 1.1], [0, 1, 1, 0], {
+function RailBrandDecal() {
+  const center = project(0.13, 175)
+  const angle = Math.atan2(END.y - START.y, END.x - START.x) * 180 / Math.PI
+
+  return (
+    <g transform={`rotate(${angle} ${center.x} ${center.y})`} opacity="0.9">
+      <rect x={center.x - 58} y={center.y - 12} width="116" height="24" rx="3" fill="#f8fbfd" stroke="#afc7d4" strokeWidth="1" />
+      <image href={KSE_LOGO_ASSET} x={center.x - 51} y={center.y - 7} width="102" height="14" preserveAspectRatio="xMidYMid meet" />
+    </g>
+  )
+}
+
+function Parcel({ frame, durationInFrames, mobile, scan }: { frame: number; durationInFrames: number; mobile: boolean; scan: number }) {
+  const pose = getParcelPose(frame, durationInFrames, mobile)
+  const frontProgress = pose.progress - pose.depthProgress
+  const rearProgress = pose.progress + pose.depthProgress
+  const halfWidth = PARCEL_HALF_WIDTH
+  const boxHeight = PARCEL_HEIGHT
+  const withContact = ({ x, y }: { x: number; y: number }) => ({ x, y: y + pose.contactOffset })
+  const frontLeft = withContact(project(frontProgress, -halfWidth))
+  const frontRight = withContact(project(frontProgress, halfWidth))
+  const rearLeft = withContact(project(rearProgress, -halfWidth))
+  const rearRight = withContact(project(rearProgress, halfWidth))
+  const frontLeftTop = withContact(project(frontProgress, -halfWidth, boxHeight))
+  const frontRightTop = withContact(project(frontProgress, halfWidth, boxHeight))
+  const rearLeftTop = withContact(project(rearProgress, -halfWidth, boxHeight))
+  const rearRightTop = withContact(project(rearProgress, halfWidth, boxHeight))
+  const tapeFrontLeft = withContact(project(frontProgress, -12, boxHeight))
+  const tapeFrontRight = withContact(project(frontProgress, 12, boxHeight))
+  const tapeRearLeft = withContact(project(rearProgress, -12, boxHeight))
+  const tapeRearRight = withContact(project(rearProgress, 12, boxHeight))
+  const labelLeftTop = withContact(project(frontProgress - 0.001, -41, 75))
+  const labelRightTop = withContact(project(frontProgress - 0.001, 41, 75))
+  const labelLeftBottom = withContact(project(frontProgress - 0.001, -41, 41))
+  const labelRightBottom = withContact(project(frontProgress - 0.001, 41, 41))
+  const labelCenter = {
+    x: (labelLeftTop.x + labelRightTop.x + labelLeftBottom.x + labelRightBottom.x) / 4,
+    y: (labelLeftTop.y + labelRightTop.y + labelLeftBottom.y + labelRightBottom.y) / 4,
+  }
+  const crossAngle = Math.atan2(frontRight.y - frontLeft.y, frontRight.x - frontLeft.x) * 180 / Math.PI
+  const opacity = interpolate(pose.progress, [-0.1, -0.025, 1.04, 1.14], [0, 1, 1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   })
 
   return (
-    <foreignObject x={x} y={y} width={width} height={height} overflow="visible" opacity={opacity}>
-      <div style={{ position: 'relative', width: '100%', height: '100%', filter: `brightness(.9) saturate(.92) contrast(1.04) drop-shadow(0 ${6 * scale}px ${6 * scale}px rgba(0,0,0,.34))` }}>
-        <Img src={PARCEL_ASSET} style={{ width: '100%', height: '100%', display: 'block' }} />
-        <div style={{
-          position: 'absolute',
-          left: '50.5%',
-          top: '61%',
-          width: '40%',
-          height: '15%',
-          transform: 'translate(-50%, -50%) rotate(-5.5deg) skewX(-3deg)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#162b39',
-          background: 'linear-gradient(180deg, rgba(255,255,252,.96), rgba(224,225,217,.94))',
-          boxShadow: '0 1px 2px rgba(45,31,13,.2), inset 0 0 0 1px rgba(105,89,63,.12)',
-          fontFamily: 'Arial, sans-serif',
-          fontSize: 13 * scale,
-          fontWeight: 900,
-          letterSpacing: 1.5 * scale,
-          whiteSpace: 'nowrap',
-        }}>
-          KSE CARGO
-        </div>
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(104deg, transparent 33%, rgba(70,231,255,.94) 49%, rgba(45,170,207,.28) 57%, transparent 69%)',
-          opacity: scan * 0.32,
-          WebkitMaskImage: `url(${PARCEL_ASSET})`,
-          WebkitMaskSize: '100% 100%',
-          maskImage: `url(${PARCEL_ASSET})`,
-          maskSize: '100% 100%',
-        }} />
-      </div>
-    </foreignObject>
+    <g opacity={opacity} filter="url(#parcel-shadow)">
+      <polygon points={points(frontRight, rearRight, rearRightTop, frontRightTop)} fill="url(#cardboard-side)" />
+      <polygon points={points(frontLeft, frontRight, frontRightTop, frontLeftTop)} fill="url(#cardboard-front)" />
+      <polygon points={points(frontLeftTop, frontRightTop, rearRightTop, rearLeftTop)} fill="url(#cardboard-top)" />
+      <polyline points={points(frontLeftTop, frontRightTop, rearRightTop)} fill="none" stroke="#f2c98f" strokeWidth={1.3 * pose.scale} opacity="0.58" />
+      <polygon points={points(tapeFrontLeft, tapeFrontRight, tapeRearRight, tapeRearLeft)} fill="url(#packing-tape)" opacity="0.82" />
+      <polygon points={points(labelLeftTop, labelRightTop, labelRightBottom, labelLeftBottom)} fill="#f5f3ec" opacity="0.96" />
+      <svg
+        x={labelCenter.x - 17 * pose.scale}
+        y={labelCenter.y - 9.2 * pose.scale}
+        width={34 * pose.scale}
+        height={18.4 * pose.scale}
+        viewBox="0 0 150 81"
+        overflow="hidden"
+        aria-hidden="true"
+        transform={`rotate(${crossAngle} ${labelCenter.x} ${labelCenter.y})`}
+      >
+        <image href={KSE_LOGO_ASSET} x="0" y="0" width="578" height="81" />
+      </svg>
+      <polygon
+        points={points(frontLeftTop, frontRightTop, rearRightTop, rearLeftTop)}
+        fill="url(#parcel-scan)"
+        opacity={scan * 0.48}
+      />
+    </g>
   )
 }
 
-function scannerGeometry() {
-  const height = 260
-
-  return {
-    scale: depthScale(SCANNER_PROGRESS),
-    beamFarBottom: project(SCANNER_PROGRESS, -BELT_WIDTH / 2, 8),
-    beamNearBottom: project(SCANNER_PROGRESS, BELT_WIDTH / 2, 8),
-    beamNearTop: project(SCANNER_PROGRESS, BELT_WIDTH / 2, height - 18),
-    beamFarTop: project(SCANNER_PROGRESS, -BELT_WIDTH / 2, height - 18),
-    laserFar: project(SCANNER_PROGRESS, -BELT_WIDTH / 2, 76),
-    laserNear: project(SCANNER_PROGRESS, BELT_WIDTH / 2, 76),
-  }
-}
-
-function ScannerBeamBack({ scan }: { scan: number }) {
-  const geometry = scannerGeometry()
-
-  return (
-    <polygon
-      points={points(geometry.beamFarBottom, geometry.beamNearBottom, geometry.beamNearTop, geometry.beamFarTop)}
-      fill="url(#scan-beam)"
-      opacity={scan * 0.3}
-    />
-  )
-}
-
-function ScannerBeamFront({ scan }: { scan: number }) {
-  const geometry = scannerGeometry()
-
-  return (
-    <line
-      x1={geometry.laserFar.x}
-      y1={geometry.laserFar.y}
-      x2={geometry.laserNear.x}
-      y2={geometry.laserNear.y}
-      stroke="#79efff"
-      strokeWidth={(2 + scan * 5) * geometry.scale}
-      opacity={0.08 + scan * 0.92}
-      filter="url(#cyan-glow)"
-    />
-  )
-}
-
-function ScannerForeground() {
-  const clips = [
-    'inset(195px 210px 495px 875px)',
-    'inset(248px 500px 130px 885px)',
-    'inset(245px 315px 115px 1060px)',
-  ]
+function ScannerBeam({ scan }: { scan: number }) {
+  const farBottom = project(SCANNER_PROGRESS, -BELT_WIDTH / 2, 4)
+  const nearBottom = project(SCANNER_PROGRESS, BELT_WIDTH / 2, 4)
+  const farTop = project(SCANNER_PROGRESS, -BELT_WIDTH / 2, 225)
+  const nearTop = project(SCANNER_PROGRESS, BELT_WIDTH / 2, 225)
 
   return (
     <>
-      {clips.map((clipPath) => (
-        <Img
-          key={clipPath}
-          src={CLEAN_PLATE_ASSET}
-          style={{ position: 'absolute', inset: 0, width: 1440, height: 810, clipPath, pointerEvents: 'none' }}
-        />
-      ))}
+      <polygon
+        points={points(farBottom, nearBottom, nearTop, farTop)}
+        fill="url(#scan-beam)"
+        opacity={scan * 0.28}
+      />
+      <line
+        x1={farBottom.x}
+        y1={farBottom.y - 40 * depthScale(SCANNER_PROGRESS)}
+        x2={nearBottom.x}
+        y2={nearBottom.y - 40 * depthScale(SCANNER_PROGRESS)}
+        stroke="#83f1ff"
+        strokeWidth={2 + scan * 3}
+        opacity={scan}
+        filter="url(#cyan-glow)"
+      />
     </>
   )
 }
@@ -180,18 +188,14 @@ function ScannerForeground() {
 export function ConveyorScene({ mobile = false }: { mobile?: boolean }) {
   const frame = useCurrentFrame()
   const { durationInFrames, height, width } = useVideoConfig()
-  const normalizedFrame = frame / (durationInFrames - 1)
-  const boxProgress = interpolate(normalizedFrame, [0, 1], mobile ? [0.16, 0.84] : [-0.1, 1.1], {
+  const normalizedFrame = frame / Math.max(1, durationInFrames - 1)
+  const parcelProgress = getParcelProgress(frame, durationInFrames, mobile)
+  const scan = interpolate(Math.abs(parcelProgress - SCANNER_PROGRESS), [0.018, 0.1], [1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   })
-  const beltTravel = normalizedFrame * (mobile ? 1 : 1.2)
-  const scan = interpolate(Math.abs(boxProgress - SCANNER_PROGRESS), [0.015, 0.12], [1, 0], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
-  })
-  const cameraScale = interpolate(normalizedFrame, [0, 0.5, 1], [1.025, 1.055, 1.035])
-  const mobileFocusX = pointAt(boxProgress).x
+  const cameraScale = interpolate(normalizedFrame, [0, 0.55, 1], [1.015, 1.045, 1.025])
+  const mobileFocusX = pointAt(parcelProgress).x
   const mobileScale = height / 810 * cameraScale
   const mobileOffsetX = width / 2 - mobileFocusX * mobileScale
 
@@ -206,63 +210,72 @@ export function ConveyorScene({ mobile = false }: { mobile?: boolean }) {
         transform: mobile
           ? `translateX(${mobileOffsetX}px) scale(${mobileScale})`
           : `scale(${cameraScale})`,
-        transformOrigin: mobile ? '0 0' : '54% 56%',
+        transformOrigin: mobile ? '0 0' : '58% 55%',
       }}>
-        <Img
-          src={CLEAN_PLATE_ASSET}
-          style={{ position: 'absolute', inset: 0, width: 1440, height: 810, objectFit: 'cover' }}
-        />
+        <Img src={CLEAN_PLATE_ASSET} style={{ position: 'absolute', inset: 0, width: 1440, height: 810 }} />
         <svg
           width="1440"
           height="810"
           viewBox="0 0 1440 810"
           role="img"
-          aria-label="KSE 자동 분류 컨베이어에서 화물이 이동하는 장면"
+          aria-label="KSE 자동 분류 컨베이어 위의 화물이 검사대를 통과하는 장면"
           style={{ position: 'absolute', inset: 0 }}
         >
           <defs>
+            <clipPath id="belt-surface-mask">
+              <polygon points="0,642 400,810 1335,303 1295,286" />
+            </clipPath>
+            <linearGradient id="belt-moving-band" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stopColor="#eaf6fb" stopOpacity="0" />
+              <stop offset="0.48" stopColor="#eaf6fb" stopOpacity="0.72" />
+              <stop offset="1" stopColor="#eaf6fb" stopOpacity="0" />
+            </linearGradient>
+            <linearGradient id="cardboard-front" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#c58a46" />
+              <stop offset="0.55" stopColor="#a96c32" />
+              <stop offset="1" stopColor="#885024" />
+            </linearGradient>
+            <linearGradient id="cardboard-side" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#925624" />
+              <stop offset="1" stopColor="#603518" />
+            </linearGradient>
+            <linearGradient id="cardboard-top" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#e0ae6d" />
+              <stop offset="0.6" stopColor="#c58843" />
+              <stop offset="1" stopColor="#a96730" />
+            </linearGradient>
+            <linearGradient id="packing-tape" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stopColor="#ead8b6" />
+              <stop offset="0.5" stopColor="#f0dfbf" />
+              <stop offset="1" stopColor="#c8ad7d" />
+            </linearGradient>
+            <linearGradient id="parcel-scan" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stopColor="#68e9ff" stopOpacity="0" />
+              <stop offset="0.5" stopColor="#68e9ff" stopOpacity="0.9" />
+              <stop offset="1" stopColor="#68e9ff" stopOpacity="0" />
+            </linearGradient>
             <linearGradient id="scan-beam" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0" stopColor="#5de7ff" stopOpacity="0" />
-              <stop offset="0.5" stopColor="#5de7ff" stopOpacity="0.6" />
+              <stop offset="0.5" stopColor="#5de7ff" stopOpacity="0.72" />
               <stop offset="1" stopColor="#5de7ff" stopOpacity="0" />
             </linearGradient>
             <filter id="contact-shadow"><feGaussianBlur stdDeviation="5" /></filter>
-            <filter id="cyan-glow"><feGaussianBlur stdDeviation="7" /></filter>
+            <filter id="cyan-glow"><feGaussianBlur stdDeviation="6" /></filter>
+            <filter id="parcel-shadow" x="-30%" y="-30%" width="160%" height="170%">
+              <feDropShadow dx="2" dy="5" stdDeviation="4" floodColor="#02060a" floodOpacity="0.42" />
+            </filter>
           </defs>
-          {Array.from({ length: 9 }, (_, index) => {
-            const progress = (index / 9 + beltTravel) % 1
-            const left = edgeAt(progress, -1)
-            const right = edgeAt(progress, 1)
-            return <line key={index} x1={left.x} y1={left.y} x2={right.x} y2={right.y} stroke="#d6e6eb" strokeWidth={interpolate(progress, [0, 1], [4, 1.4])} opacity="0.075" />
-          })}
 
-          {Array.from({ length: 7 }, (_, index) => {
-            const progress = (index / 7 + beltTravel) % 1
-            const tip = project(progress + 14 / DIRECTION_LENGTH)
-            const left = project(progress - 9 / DIRECTION_LENGTH, -13)
-            const right = project(progress - 9 / DIRECTION_LENGTH, 13)
-            return (
-              <polyline
-                key={index}
-                points={points(left, tip, right)}
-                fill="none"
-                stroke="#9cd4df"
-                strokeWidth={2.4 * depthScale(progress)}
-                opacity="0.11"
-              />
-            )
-          })}
-
-          <ScannerBeamBack scan={scan} />
-          <ParcelShadow progress={boxProgress} />
-          <PhotorealParcel progress={boxProgress} scan={scan} />
-          <ScannerBeamFront scan={scan} />
-
-          <rect x="0" y="0" width="1440" height="810" fill="none" stroke="#061019" strokeOpacity="0.28" strokeWidth="24" />
+          <MovingBeltSurface frame={frame} durationInFrames={durationInFrames} />
+          <RailBrandDecal />
+          <ParcelShadow progress={parcelProgress} />
+          <Parcel frame={frame} durationInFrames={durationInFrames} mobile={mobile} scan={scan} />
+          <ScannerBeam scan={scan} />
         </svg>
-        <ScannerForeground />
       </div>
-      <AbsoluteFill style={{ background: 'linear-gradient(90deg, rgba(2,10,20,.55) 0%, rgba(2,10,20,.12) 43%, transparent 68%), linear-gradient(0deg, rgba(2,9,18,.24), transparent 48%)' }} />
+      <AbsoluteFill style={{
+        background: 'linear-gradient(90deg, rgba(3,12,24,.68) 0%, rgba(3,12,24,.34) 38%, transparent 66%), linear-gradient(0deg, rgba(2,9,18,.18), transparent 50%)',
+      }} />
     </AbsoluteFill>
   )
 }

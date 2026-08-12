@@ -19,11 +19,14 @@ vi.mock('gsap', () => ({
 vi.mock('gsap/ScrollTrigger', () => ({ ScrollTrigger: {} }))
 
 describe('KSE 글로벌 프로토타입', () => {
-  it('핵심 포지셔닝과 상담 전환을 렌더링한다', () => {
+  it('핵심 포지셔닝과 실제 상담 전환을 렌더링한다', () => {
     render(<App />)
     expect(screen.getByRole('heading', { level: 1, name: /한국과 일본의.*자체 인프라/ })).toBeInTheDocument()
     expect(screen.getByText('전 세계를 연결하는 파트너 네트워크.')).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: /글로벌 물류 상담|물류 상담/ }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('link', { name: /글로벌 물류 상담|물류 상담/ })[0]).toHaveAttribute(
+      'href',
+      'https://www.kseexpress.com/155',
+    )
   })
 
   it('일본을 대표 성공 노선으로 구분한다', () => {
@@ -36,10 +39,19 @@ describe('KSE 글로벌 프로토타입', () => {
     const { container } = render(<App />)
     expect(screen.getByRole('heading', { name: /주문이 들어오면/ })).toBeInTheDocument()
     expect(screen.getByText(/두 거점에서 시작해/)).toBeInTheDocument()
-    expect(screen.getAllByText('OCEAN').length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/OCEAN/).length).toBeGreaterThan(0)
     expect(container.querySelector('[data-conveyor-video][data-motion-render="remotion"]')).toBeInTheDocument()
     expect(container.querySelector('source[src$="conveyor-sequence-mobile.mp4"]')).toBeInTheDocument()
     expect(container.querySelector('[data-parcel-primary]')).not.toBeInTheDocument()
+  })
+
+  it('한국·일본 거점에서 해상과 항공 루트가 함께 출발한다', () => {
+    render(<App />)
+
+    expect(screen.getByRole('img', { name: /선박과 항공기가 동시에 출발/ })).toBeInTheDocument()
+    expect(screen.getAllByText('AIR / OCEAN').length).toBeGreaterThan(0)
+    expect(screen.getByRole('img', { name: /국제 항공 루트를 운항하는 KSE 화물기/ })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /국제 해상 루트를 운항하는 KSE 화물선/ })).toBeInTheDocument()
   })
 
   it('실제 KSE 운영 서비스와 현장 근거를 함께 제공한다', () => {
@@ -48,5 +60,29 @@ describe('KSE 글로벌 프로토타입', () => {
     expect(screen.getByText(/자체 OMS와 WMS/)).toBeInTheDocument()
     expect(screen.getAllByText(/냉장 2–10°C/).length).toBeGreaterThan(0)
     expect(screen.getByRole('link', { name: /KSE 한국어 홍보 영상/ })).toHaveAttribute('href', expect.stringContaining('youtube.com'))
+  })
+
+  it('긴 고정 스크롤 없이 다섯 가지 운영 콘텐츠를 한눈에 노출한다', () => {
+    const { container } = render(<App />)
+
+    expect(container.querySelector('[data-guide-scroll]')).not.toBeInTheDocument()
+    expect(container.querySelectorAll('[data-guide-card]')).toHaveLength(5)
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /RPA 자동화 영상/ })).toHaveAttribute(
+      'href',
+      expect.stringContaining('okvrq96bywA'),
+    )
+    expect(screen.getByRole('link', { name: /K-커뮤니티 영상/ })).toHaveAttribute(
+      'href',
+      expect.stringContaining('2zqlWbbg_UQ'),
+    )
+  })
+
+  it('기존 마지막 상담 폼 섹션을 노출하지 않는다', () => {
+    const { container } = render(<App />)
+
+    expect(screen.queryByRole('heading', { name: /다음 시장으로 가는 길/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('form')).not.toBeInTheDocument()
+    expect(container.querySelector('a[href="#contact"]')).not.toBeInTheDocument()
   })
 })

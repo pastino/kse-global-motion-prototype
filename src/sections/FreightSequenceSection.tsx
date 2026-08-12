@@ -1,10 +1,23 @@
 import { ConveyorVideo } from '../components/ConveyorVideo'
+import { assetUrl } from '../lib/asset-url'
+
+function KseMark({ className = '' }: { className?: string }) {
+  return (
+    <span className={`kse-mark ${className}`} aria-hidden="true">
+      <img src={assetUrl('assets/kse-logo.png')} alt="" />
+    </span>
+  )
+}
+
+function VehicleLogo({ className = '' }: { className?: string }) {
+  return <img className={`vehicle-logo ${className}`} src={assetUrl('assets/kse-logo.png')} alt="" aria-hidden="true" />
+}
 
 const services = [
   ['01', 'FULFILLMENT', '주문 통합 · 입고 · 검수'],
   ['02', 'CUSTOMS', '수출입 신고 · 통관 대응'],
   ['03', 'ROAD', '거점에서 항만까지 육상 운송'],
-  ['04', 'OCEAN', '전 세계 파트너 항로 연결'],
+  ['04', 'AIR / OCEAN', '항공·해상 포워딩과 글로벌 파트너 항로'],
 ]
 
 export function FreightSequenceSection() {
@@ -16,16 +29,45 @@ export function FreightSequenceSection() {
           <ConveyorVideo />
           <div className="sequence-road sequence-road--side"><span /><span /><span /></div>
           <div className="sequence-road sequence-road--top"><span /><span /><span /></div>
-          <div className="sequence-ocean"><span className="ocean-wake ocean-wake--left" /><span className="ocean-wake ocean-wake--right" /></div>
+          <div className="sequence-ocean">
+            <span className="corridor-trail corridor-trail--sea" />
+            <span className="corridor-trail corridor-trail--air" />
+            <span className="ocean-wake ocean-wake--left" />
+            <span className="ocean-wake ocean-wake--right" />
+            <span className="air-contrail air-contrail--left" />
+            <span className="air-contrail air-contrail--right" />
+          </div>
 
           <div className="sorting-status" data-sorting-status>
-            <span><i /> OMS ORDER</span>
-            <span><i /> WEIGHT OK</span>
-            <span><i /> ROUTE READY</span>
+            <span><i /> ORDER IN</span>
+            <span><i /> SCAN CLEAR</span>
+            <span><i /> OUTBOUND READY</span>
           </div>
-          <img data-truck-side className="sequence-vehicle sequence-truck-side" src="/assets/generated/freight-truck-side-v2.webp" alt="" decoding="async" />
-          <img data-truck-top className="sequence-vehicle sequence-truck-top" src="/assets/generated/freight-truck-top-v2.webp" alt="" decoding="async" />
-          <img data-ship-top className="sequence-vehicle sequence-ship-top" src="/assets/generated/cargo-ship-top-v2.webp" alt="" decoding="async" />
+          <div data-truck-side className="sequence-vehicle sequence-truck-side">
+            <img className="vehicle-art" src={assetUrl('assets/generated/freight-truck-side-v2.webp')} alt="" decoding="async" />
+            <VehicleLogo className="vehicle-logo--truck-side" />
+          </div>
+          <div data-truck-top className="sequence-vehicle sequence-truck-top">
+            <img className="vehicle-art" src={assetUrl('assets/generated/freight-truck-top-v2.webp')} alt="" decoding="async" />
+            <KseMark className="vehicle-logo--truck-top" />
+          </div>
+          <div data-ship-top className="sequence-vehicle sequence-ship-top">
+            <img className="vehicle-art" src={assetUrl('assets/generated/cargo-ship-top-v2.webp')} alt="" decoding="async" />
+            <KseMark className="vehicle-logo--ship" />
+          </div>
+          <div data-plane-top className="sequence-vehicle sequence-plane-top">
+            <img className="vehicle-art" src={assetUrl('assets/generated/cargo-plane-top-v1.png')} alt="" decoding="async" />
+            <KseMark className="vehicle-logo--plane" />
+          </div>
+
+          <div className="sequence-hub sequence-hub--korea" data-sequence-hub>
+            <KseMark />
+            <span>KOREA HUB</span>
+          </div>
+          <div className="sequence-hub sequence-hub--japan" data-sequence-hub>
+            <KseMark />
+            <span>JAPAN HUB</span>
+          </div>
 
           <div className="sequence-cloud sequence-cloud--one" />
           <div className="sequence-cloud sequence-cloud--two" />
@@ -35,7 +77,7 @@ export function FreightSequenceSection() {
         <div className="sequence-ui section-shell">
           <div className="sequence-meta">
             <span data-scroll-hint>SCROLL TO MOVE</span>
-            <span><strong data-sequence-speed>00</strong> KM/H</span>
+            <span>FLOW <strong data-sequence-speed>00</strong>%</span>
           </div>
 
           <div className="sequence-copy sequence-copy--pickup" data-sequence-copy="pickup">
@@ -96,15 +138,34 @@ export function FreightSequenceSection() {
             <h3>통관을 지나<br />항만으로.</h3>
             <p>수출 신고와 육상 운송을 하나의 일정으로 연결합니다.</p>
           </div>
-          <img src="/assets/generated/freight-truck-side-v2.webp" alt="항만으로 이동하는 화물 트럭" loading="lazy" decoding="async" />
+          <div className="sequence-mobile-vehicle sequence-mobile-truck">
+            <img className="vehicle-art" src={assetUrl('assets/generated/freight-truck-side-v2.webp')} alt="항만으로 이동하는 KSE 화물 트럭" loading="lazy" decoding="async" />
+            <VehicleLogo className="vehicle-logo--truck-side" />
+          </div>
         </div>
-        <div className="sequence-mobile-scene sequence-mobile-scene--ocean" data-reveal>
+        <div
+          className="sequence-mobile-scene sequence-mobile-scene--ocean"
+          data-reveal
+          role="img"
+          aria-label="한국과 일본 거점에서 KSE 선박과 항공기가 동시에 출발하는 장면"
+        >
           <div className="section-shell sequence-mobile-copy">
             <span>03 · AIR & OCEAN</span>
             <h3>가장 맞는 경로로<br />전 세계까지.</h3>
             <p>한·일 자체 인프라에서 글로벌 파트너 항로로 이어집니다.</p>
           </div>
-          <img src="/assets/generated/cargo-ship-top-v2.webp" alt="국제 항로를 운항하는 화물선" loading="lazy" decoding="async" />
+          <div className="sequence-mobile-hubs" aria-hidden="true">
+            <span><KseMark />KOREA HUB</span>
+            <span><KseMark />JAPAN HUB</span>
+          </div>
+          <div className="sequence-mobile-vehicle sequence-mobile-ship" data-mobile-ship>
+            <img className="vehicle-art" src={assetUrl('assets/generated/cargo-ship-top-v2.webp')} alt="국제 해상 루트를 운항하는 KSE 화물선" loading="lazy" decoding="async" />
+            <KseMark className="vehicle-logo--ship" />
+          </div>
+          <div className="sequence-mobile-vehicle sequence-mobile-plane" data-mobile-plane>
+            <img className="vehicle-art" src={assetUrl('assets/generated/cargo-plane-top-v1.png')} alt="국제 항공 루트를 운항하는 KSE 화물기" loading="lazy" decoding="async" />
+            <KseMark className="vehicle-logo--plane" />
+          </div>
         </div>
       </div>
 

@@ -10,6 +10,7 @@ export const FORWARD_MOTION = {
   sideTruck: { entry: -110, settle: -78, exit: 20 },
   topTruck: { entry: 52, settle: 22, exit: -70 },
   ship: { entry: 45, settle: 22, exit: -12 },
+  plane: { entry: 58, settle: 25, exit: -28 },
 } as const
 
 export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
@@ -44,6 +45,31 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
         scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true },
       })
 
+      gsap.fromTo(
+        '[data-mobile-ship]',
+        { yPercent: 32, scale: 1.08 },
+        {
+          yPercent: -10,
+          scale: 0.88,
+          duration: 1.35,
+          ease: 'power2.out',
+          scrollTrigger: { trigger: '.sequence-mobile-scene--ocean', start: 'top 78%', once: true },
+        },
+      )
+
+      gsap.fromTo(
+        '[data-mobile-plane]',
+        { yPercent: 38, xPercent: 8, scale: 1.12 },
+        {
+          yPercent: -14,
+          xPercent: -5,
+          scale: 0.84,
+          duration: 1.15,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: '.sequence-mobile-scene--ocean', start: 'top 74%', once: true },
+        },
+      )
+
       const speedElement = rootRef.current?.querySelector<HTMLElement>('[data-sequence-speed]')
 
       const sequence = gsap.timeline({
@@ -58,7 +84,7 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
             conveyorVideo?.setProgress(Math.min(1, progress / 0.255))
             if (!speedElement) return
             const acceleration = progress < 0.72 ? progress / 0.72 : (1 - progress) / 0.28
-            speedElement.textContent = String(Math.max(0, Math.round(acceleration * 52))).padStart(2, '0')
+            speedElement.textContent = String(Math.max(0, Math.round(acceleration * 100))).padStart(2, '0')
           },
         },
       })
@@ -92,9 +118,15 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
         .to('.sequence-road--top', { opacity: 0, duration: 0.56 }, 7.88)
         .to('[data-truck-top]', { opacity: 0, scale: 1.22, duration: 0.45, ease: 'power2.in' }, 7.84)
         .to('.sequence-ocean', { opacity: 1, duration: 0.72, ease: 'power2.out' }, 7.82)
+        .fromTo('[data-sequence-hub]', { opacity: 0, scale: 0.72 }, { opacity: 1, scale: 1, stagger: 0.1, duration: 0.5, ease: 'back.out(1.6)' }, 7.9)
+        .fromTo('.corridor-trail', { opacity: 0, scaleY: 0.08 }, { opacity: 0.72, scaleY: 1, stagger: 0.12, duration: 1.1, ease: 'power2.out' }, 7.98)
         .fromTo('[data-ship-top]', { opacity: 0, scale: 1.48, yPercent: FORWARD_MOTION.ship.entry }, { opacity: 1, scale: 1.28, yPercent: FORWARD_MOTION.ship.settle, duration: 0.86, ease: 'power2.out' }, 7.98)
+        .fromTo('[data-plane-top]', { opacity: 0, scale: 1.32, yPercent: FORWARD_MOTION.plane.entry, xPercent: 8 }, { opacity: 1, scale: 1.08, yPercent: FORWARD_MOTION.plane.settle, xPercent: 0, duration: 0.78, ease: 'power3.out' }, 8.08)
         .fromTo('.ocean-wake', { opacity: 0, scaleY: 0.35 }, { opacity: 0.8, scaleY: 1.08, duration: 1.5, ease: 'power2.out' }, 8.2)
+        .fromTo('.air-contrail', { opacity: 0, scaleY: 0.25 }, { opacity: 0.58, scaleY: 1, stagger: 0.08, duration: 1.2, ease: 'power2.out' }, 8.24)
         .to('[data-ship-top]', { scale: 0.5, yPercent: FORWARD_MOTION.ship.exit, duration: 2.6, ease: 'power1.inOut' }, 8.82)
+        .to('[data-plane-top]', { scale: 0.44, yPercent: FORWARD_MOTION.plane.exit, xPercent: 10, duration: 2.35, ease: 'power1.inOut' }, 8.72)
+        .to('[data-sequence-hub]', { opacity: 0.38, scale: 0.88, duration: 1.25, ease: 'power1.out' }, 9.2)
         .fromTo('.sequence-cloud', { opacity: 0, scale: 0.72, xPercent: -8 }, { opacity: 0.78, scale: 1.12, xPercent: 7, stagger: 0.12, duration: 0.9, ease: 'power2.out' }, 9.08)
         .fromTo('[data-sequence-copy="ocean"]', { y: 65, opacity: 0 }, { y: 0, opacity: 1, duration: 0.76, ease: 'power2.out' }, 10.28)
         .to('.sequence-grid', { opacity: 0, duration: 0.42 }, 7.78)
@@ -135,6 +167,7 @@ export function useJourneyMotion(rootRef: RefObject<HTMLElement | null>) {
           scrollTrigger: { trigger: '[data-route-visual]', start: 'top 68%', once: true },
         },
       )
+
     }, rootRef)
 
     return () => {
