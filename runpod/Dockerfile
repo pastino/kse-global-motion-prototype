@@ -37,9 +37,18 @@ RUN git clone -b main https://github.com/microsoft/TRELLIS.2.git --recursive /ap
 
 WORKDIR /app/TRELLIS.2
 
-# --new-env 는 빼야 한다. 붙이면 conda 환경 trellis2 를 새로 만들어서
+# setup.sh 는 `command -v nvidia-smi` 하나로 cuda / hip 를 가른다. 그런데 nvidia-smi 는
+# 드라이버가 런타임에 마운트해 주는 것이라 CUDA devel 이미지에는 없다 — 빌더에 GPU 가 없으니
+# "Error: No supported GPU found" 로 0.04초 만에 죽는다. 존재 여부만 보므로 빈 스텁이면 통과한다.
+#
+# 스텁은 반드시 같은 RUN 안에서 지운다. /usr/local/bin 이 /usr/bin 보다 PATH 앞이라,
+# 남겨두면 런타임에 진짜 nvidia-smi 를 가려버린다.
+#
+# --new-env 도 빼야 한다. 붙이면 conda 환경 trellis2 를 새로 만들어서
 # 정작 CMD 가 실행되는 시스템 python 에는 아무것도 안 깔린다.
-RUN bash -c ". ./setup.sh --basic --flash-attn --nvdiffrast --nvdiffrec --cumesh --o-voxel --flexgemm"
+RUN printf '#!/bin/sh\nexit 0\n' > /usr/local/bin/nvidia-smi && chmod +x /usr/local/bin/nvidia-smi && \
+    bash -c ". ./setup.sh --basic --flash-attn --nvdiffrast --nvdiffrec --cumesh --o-voxel --flexgemm" && \
+    rm -f /usr/local/bin/nvidia-smi
 
 WORKDIR /app
 
