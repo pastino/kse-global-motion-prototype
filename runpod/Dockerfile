@@ -29,8 +29,14 @@ ENV CUDA_HOME=/usr/local/cuda
 ENV MAX_JOBS=4
 
 # TRELLIS.2 는 torch 2.6.0 + cu124 기준이다. 베이스의 2.4.0 을 올린다.
+#
+# torchaudio 를 반드시 같이 올려야 한다. 베이스에 깔린 torchaudio 2.4.0 은 torch 2.4.0 의
+# C++ 심볼에 링크돼 있어서, torch 만 2.6.0 으로 올리면 로딩 시점에 터진다:
+#   libtorchaudio.so: undefined symbol: _ZN2at4_ops9fft_irfft4call...
+# 세 패키지는 버전이 짝을 이룬다 — torch 2.6.0 ↔ torchvision 0.21.0 ↔ torchaudio 2.6.0.
 RUN pip install --upgrade pip && \
-    pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124
+    pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 \
+        --index-url https://download.pytorch.org/whl/cu124
 
 # 서브모듈까지 받아야 한다 — o-voxel 이 서브모듈이라 --recursive 없으면 --o-voxel 이 빈 디렉토리를 깐다.
 RUN git clone -b main https://github.com/microsoft/TRELLIS.2.git --recursive /app/TRELLIS.2
