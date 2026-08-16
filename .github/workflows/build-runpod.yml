@@ -1,0 +1,61 @@
+name: Build TRELLIS.2 Worker Image
+
+# Mac 에서는 이 이미지를 못 만든다. 로컬 도커는 aarch64 인데 이미지는 x86_64 CUDA 이고,
+# nvdiffrast/CuMesh/FlexGEMM 를 nvcc 로 컴파일한다 — 에뮬레이션으로는 몇 시간 끌다 깨진다.
+# 그래서 빌드는 전부 GitHub 의 x86 러너에서 한다.
+
+on:
+  push:
+    # 브랜치를 안 건다. 이 레포는 feat/* 에서 작업 중이고, gh workflow run 은
+    # 워크플로 파일이 기본 브랜치에 있어야만 먹는다 — main 에 머지되기 전까지
+    # 빌드를 못 돌리는 상황을 피한다.
+    paths:
+      - 'runpod/**'
+      - '.github/workflows/build-runpod.yml'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/trellis2-worker
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # CUDA devel 베이스 + torch 2.6 + 컴파일된 확장까지 얹으면 20GB 를 넘긴다.
+      # 기본 러너의 여유 디스크(~14GB)로는 못 버틴다. 안 쓰는 SDK 를 먼저 지운다.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          sudo rm -rf /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
+          df -h /
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./runpod
+          file: ./runpod/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}

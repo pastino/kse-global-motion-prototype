@@ -11,3 +11,10 @@ public/assets/generated/conveyor-cleanplate-centered-v5.webp
 public/assets/generated/conveyor-cleanplate-shallow-v6.webp
 public/assets/generated/parcel-shallow-v7.png
 public/assets/generated/parcel-shallow-v7-trimmed.png
+
+# 로컬 시크릿 (커밋 금지)
+.env
+.env.local
+
+# python 바이트코드 (runpod 워커 문법검사 시 생김)
+__pycache__/
