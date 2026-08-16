@@ -64,6 +64,12 @@ jobs:
           file: ./runpod/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          # buildx 는 기본으로 provenance attestation 을 붙이는데, 그러면 결과물이
+          # 단일 매니페스트가 아니라 OCI index(amd64 + unknown/unknown)가 된다.
+          # RunPod 은 이 index 를 못 풀어 이미지 pull 에 실패하고 워커가 unhealthy 로 떨어진다.
+          # 끄면 평범한 단일 플랫폼 매니페스트가 나온다.
+          provenance: false
+          sbom: false
           # 레지스트리 캐시. handler.py 만 고친 재빌드가 nvcc 확장을 다시 굽지 않게 한다
           # — 이게 없으면 한 줄 수정에도 매번 40~70분이다. (GHA 캐시는 10GB 한도라 이 이미지엔 못 씀)
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
