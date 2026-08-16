@@ -66,11 +66,13 @@ async function imageTo3D(pairs) {
     body: JSON.stringify({
       input: {
         items: pairs.map(([imagePath, name]) => ({ image_b64: encode(imagePath), name })),
-        // Meshy 를 target_polycount 50000 으로 써 왔다. 3만에서는 패널이 휘고 후미가
-        // 뭉개졌다는 실측이 있어 같은 값에서 출발한다. 비교의 조건을 맞추는 것이 목적.
-        decimation_target: Number(process.env.TRELLIS_POLYCOUNT ?? 50000),
-        resolution: Number(process.env.TRELLIS_RESOLUTION ?? 1024),
-        texture_size: Number(process.env.TRELLIS_TEXTURE ?? 2048),
+        // 5만으로 깎았더니 1024³ 로 만든 형상이 전부 둥글려져 "녹은" 결과가 나왔다.
+        // 생성 품질을 먼저 확보하고, 웹용 감축은 모서리 보존되는 도구로 따로 한다.
+        decimation_target: Number(process.env.TRELLIS_POLYCOUNT ?? 500000),
+        // 인자 이름은 resolution 이 아니라 pipeline_type 이다.
+        // '512' / '1024' / '1024_cascade' / '1536_cascade'.
+        pipeline_type: process.env.TRELLIS_PIPELINE ?? '1024_cascade',
+        texture_size: Number(process.env.TRELLIS_TEXTURE ?? 4096),
         s3_folder: process.env.TRELLIS_S3_FOLDER ?? 'kse/models',
         ...(process.env.AWS_S3_BUCKET ? { s3_bucket: process.env.AWS_S3_BUCKET } : {}),
       },
@@ -95,6 +97,10 @@ async function imageTo3D(pairs) {
       const output = task.output ?? {}
       if (output.error) throw new Error(`워커 오류: ${safe(output.error)}`)
       console.log(`\n  GPU ${output.gpu ?? '?'} / 모델 로딩 ${output.load_seconds ?? '?'}s`)
+      // 넘긴 설정이 실제로 안 먹었으면 여기서 드러난다. 조용히 버려져 저품질이 나온 적이 있다.
+      if (output.dropped_args?.length) {
+        console.warn(`  ⚠ 무시된 인자: ${output.dropped_args.join(' | ')}`)
+      }
 
       const saved = []
       for (const item of output.results ?? []) {

@@ -171,12 +171,19 @@ def _load_pipeline():
     return _PIPE
 
 
+_DROPPED: list = []
+
+
 def _call_filtered(fn, *args, **kwargs):
     """
     시그니처에 실제로 있는 키워드만 골라 넘긴다.
 
     TRELLIS.2 는 아직 릴리스 초기라 run()/to_glb() 의 인자 이름이 버전 사이에 바뀐다.
     모르는 키를 그대로 넘기면 TypeError 로 잡 전체가 죽는데, 그 손실이 훨씬 크다.
+
+    버린 인자는 반드시 응답에 실어 보낸다. stdout 로만 흘렸더니 실제로 사고가 났다 —
+    resolution= 을 넘겼는데 진짜 이름은 pipeline_type 이라 조용히 버려졌고,
+    RunPod 은 워커 로그를 API 로 안 주니 아무도 모른 채 결과만 이상했다.
     """
     try:
         allowed = set(inspect.signature(fn).parameters)
@@ -184,7 +191,9 @@ def _call_filtered(fn, *args, **kwargs):
         return fn(*args, **kwargs)
     dropped = [k for k in kwargs if k not in allowed]
     if dropped:
-        _log(f"  (미지원 인자 무시: {', '.join(dropped)})")
+        label = f"{getattr(fn, '__qualname__', fn)}: {', '.join(dropped)}"
+        _log(f"  (미지원 인자 무시 — {label})")
+        _DROPPED.append(label)
     return fn(*args, **{k: v for k, v in kwargs.items() if k in allowed})
 
 
@@ -236,7 +245,10 @@ def _generate(pipe, item: dict, opts: dict, bucket: str, region: str) -> dict:
         pipe.run,
         image,
         seed=item.get("seed", opts.get("seed", 42)),
-        resolution=opts.get("resolution", 1024),
+        # 인자 이름은 resolution 이 아니라 pipeline_type 이다.
+        # '512' / '1024' / '1024_cascade' / '1536_cascade' 중 하나. 기본값은 1024_cascade.
+        pipeline_type=opts.get("pipeline_type", "1024_cascade"),
+        max_num_tokens=opts.get("max_num_tokens", 49152),
     )
     mesh = outputs[0] if isinstance(outputs, (list, tuple)) else outputs
 
@@ -252,11 +264,12 @@ def _generate(pipe, item: dict, opts: dict, bucket: str, region: str) -> dict:
         attr_layout=mesh.layout,
         voxel_size=mesh.voxel_size,
         aabb=[[-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]],
-        # 웹 실시간 렌더 기준. Meshy 는 target_polycount 50000 으로 맞춰 썼다 —
-        # 3만에서는 패널이 휘고 후미가 뭉개졌다는 실측이 있어 같은 값에서 출발한다.
-        decimation_target=opts.get("decimation_target", 50000),
-        # 4096 은 웹에 과하다. 2048 이면 소품 기준 눈에 띄는 손실 없이 파일이 크게 준다.
-        texture_size=opts.get("texture_size", 2048),
+        # 기본값을 웹 경량치(5만)로 잡았다가 크게 데었다. 1024³ 로 만든 지오메트리를
+        # 5만 삼각형으로 깎으면 모서리가 전부 둥글려져 "녹은" 형상이 된다.
+        # 공식 예제는 1,000,000 이다. 여기서는 생성 품질을 먼저 확보하고,
+        # 웹용 감축은 별도 단계에서(모서리 보존되는 도구로) 하는 편이 낫다.
+        decimation_target=opts.get("decimation_target", 500000),
+        texture_size=opts.get("texture_size", 4096),
         remesh=opts.get("remesh", True),
     )
 
@@ -355,6 +368,8 @@ def handler(job):
         "results": results,
         "load_seconds": round(_LOAD_SECONDS, 1),
         "gpu": _gpu_name(),
+        # 비어 있지 않으면 넘긴 설정 중 일부가 실제로는 안 먹었다는 뜻이다. 반드시 확인할 것.
+        "dropped_args": sorted(set(_DROPPED)),
     }
 
 
