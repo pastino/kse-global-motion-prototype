@@ -44,7 +44,12 @@ RUN git clone https://github.com/DreamTechAI/Direct3D-S2.git /app/Direct3D-S2
 
 WORKDIR /app/Direct3D-S2
 # requirements.txt 가 third_party/voxelize/ 를 상대경로로 참조한다 — 반드시 레포 루트에서 실행해야 한다.
-RUN pip install -r requirements.txt && pip install -e .
+#
+# --no-build-isolation 이 필수다. voxelize 는 setup.py 에서 torch 를 import 하는데,
+# 격리된 빌드 환경에는 torch 가 없어 "ModuleNotFoundError: No module named 'torch'" 로 죽는다.
+# 격리를 끄면 위에서 깐 torch 2.5.1 을 그대로 본다.
+RUN pip install -r requirements.txt --no-build-isolation && \
+    pip install -e . --no-build-isolation
 
 WORKDIR /app
 
