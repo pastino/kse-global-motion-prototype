@@ -56,6 +56,13 @@ RUN printf '#!/bin/sh\nexit 0\n' > /usr/local/bin/nvidia-smi && chmod +x /usr/lo
     bash -c ". ./setup.sh --basic --flash-attn --nvdiffrast --nvdiffrec --cumesh --o-voxel --flexgemm" && \
     rm -f /usr/local/bin/nvidia-smi
 
+# setup.sh 는 transformers 를 버전 없이 깔아서 최신을 가져온다. 그런데 DinoV3FeatureExtractor 는
+# self.model.layer / .embeddings / .rope_embeddings 를 직접 파고든다 — 최신 transformers 는
+# layer 를 하위 인코더로 옮겼기 때문에 생성 시점에 이렇게 죽는다:
+#   'DINOv3ViTModel' object has no attribute 'layer'
+# 4.56~4.57 은 셋 다 DINOv3ViTModel 에 직접 달려 있다. setup.sh 뒤에 눌러 덮는다.
+RUN pip install "transformers==4.57.0"
+
 WORKDIR /app
 
 # RunPod SDK + S3 업로드 + HF 다운로드 가속
