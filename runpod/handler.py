@@ -63,6 +63,35 @@ from datetime import datetime
 # trellis2 패키지 자체는 클론한 레포 안에 그대로 있다. 경로를 직접 얹어야 import 된다.
 sys.path.insert(0, "/app/TRELLIS.2")
 
+
+def _resolve_hf_home() -> str:
+    """
+    HF 캐시 경로를 결정한다.
+
+    Dockerfile 은 /runpod-volume/huggingface-cache 를 가리킨다 — RunPod Cached Models
+    마운트 규격이라 맞춰야 호스트 캐시를 재사용한다. 그런데 네트워크 볼륨도 캐시도 안 붙은
+    엔드포인트에서는 그 경로가 아예 없거나 못 쓴다. 그대로 두면 첫 다운로드에서 죽는다.
+    쓸 수 있는지 실제로 찔러보고, 안 되면 컨테이너 디스크로 내린다(콜드스타트마다 재다운로드).
+    """
+    preferred = os.environ.get("HF_HOME", "/runpod-volume/huggingface-cache")
+    try:
+        os.makedirs(preferred, exist_ok=True)
+        probe = os.path.join(preferred, ".write-test")
+        with open(probe, "w") as handle:
+            handle.write("ok")
+        os.remove(probe)
+        return preferred
+    except Exception:
+        fallback = "/app/hf_cache"
+        os.makedirs(fallback, exist_ok=True)
+        print(f"[warn] {preferred} 를 못 쓴다 → {fallback} 로 대체. 콜드스타트마다 15GB 를 다시 받는다.", flush=True)
+        return fallback
+
+
+_HF_HOME = _resolve_hf_home()
+os.environ["HF_HOME"] = _HF_HOME
+os.environ["HUGGINGFACE_HUB_CACHE"] = _HF_HOME
+
 # 백엔드 지정은 import 전에 해야 먹는다. flash-attn 을 setup.sh 로 깔았으므로 기본은 flash_attn.
 os.environ.setdefault("ATTN_BACKEND", "flash_attn")
 os.environ.setdefault("SPCONV_ALGO", "native")
