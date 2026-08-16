@@ -119,6 +119,35 @@ def _gpu_name() -> str:
         return "unknown"
 
 
+class _NoRembg:
+    """
+    배경제거 모델 자리를 채우는 스텁.
+
+    TRELLIS.2 의 pipeline.json 은 배경제거로 briaai/RMBG-2.0 을 지정하는데, 이건
+    (1) 게이트된 리포이고 (2) 라이선스가 비상업이라 BRIA 와 별도 계약 없이는 상용에 못 쓴다.
+    승인을 받아도 이 프로젝트에는 못 쓰는 부품이라 아예 싣지 않는다.
+
+    안 실어도 되는 이유: preprocess_image() 는 입력이 RGBA 이고 알파가 전부 255 가 아니면
+    그 알파를 그대로 쓰고 rembg 를 호출하지 않는다. 우리는 항상 배경을 딴 RGBA 를 넣는다.
+    다만 from_pretrained() 가 로딩 시점에 이 객체를 만들어버리므로, 클래스 자체를 갈아끼워야
+    RMBG 다운로드가 일어나지 않는다.
+    """
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def to(self, *args, **kwargs):
+        return self
+
+    def cpu(self):
+        return self
+
+    def __call__(self, image):
+        raise RuntimeError(
+            "배경제거 모델을 싣지 않았다. 알파 채널이 있는 RGBA 이미지를 입력하라."
+        )
+
+
 def _load_pipeline():
     """4B 모델 로딩. 콜드스타트의 대부분이 여기다."""
     global _PIPE, _LOAD_SECONDS
@@ -128,6 +157,11 @@ def _load_pipeline():
     t0 = time.time()
     _log(f"파이프라인 로딩 시작 — {_MODEL_ID} on {_gpu_name()}")
     from trellis2.pipelines import Trellis2ImageTo3DPipeline
+    from trellis2.pipelines import rembg as _rembg_module
+
+    # from_pretrained 가 config 의 이름(BiRefNet)으로 getattr 해서 인스턴스를 만든다.
+    # 그 이름을 스텁으로 덮어야 RMBG-2.0 을 받으러 가지 않는다.
+    _rembg_module.BiRefNet = _NoRembg
 
     pipe = Trellis2ImageTo3DPipeline.from_pretrained(_MODEL_ID)
     pipe.cuda()
