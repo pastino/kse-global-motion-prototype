@@ -282,8 +282,38 @@ def _generate(pipe, item: dict, opts: dict, bucket: str, region: str) -> dict:
     }
 
 
+def _diagnose() -> dict:
+    """
+    워커 안에서 실제로 뭐가 import 되는지 그대로 보고한다.
+
+    RunPod 은 서버리스 워커 로그를 API 로 안 내준다. 빌드 타임 검증은 통과했는데
+    런타임에 'No module named flash_attn' 이 나는 상황에서, 추측 대신 사실을 보려고 넣었다.
+    실행 인터프리터가 빌드 때와 다른지, 모듈이 어느 경로에서 오는지가 핵심이다.
+    """
+    import importlib
+
+    info = {
+        "python": sys.executable,
+        "version": sys.version.split()[0],
+        "ATTN_BACKEND": os.environ.get("ATTN_BACKEND"),
+        "sys_path_head": sys.path[:5],
+    }
+    for name in ("torch", "torchvision", "torchaudio", "transformers",
+                 "flash_attn", "trellis2", "o_voxel", "nvdiffrast"):
+        try:
+            module = importlib.import_module(name)
+            where = str(getattr(module, "__file__", ""))
+            info[name] = f"{getattr(module, '__version__', 'ok')} @ {where[:70]}"
+        except Exception as error:
+            info[name] = f"ERR {type(error).__name__}: {error}"
+    return info
+
+
 def handler(job):
     payload = job.get("input") or {}
+
+    if payload.get("diagnose"):
+        return _diagnose()
 
     bucket = payload.get("s3_bucket") or os.environ.get("AWS_S3_BUCKET")
     if not bucket:
