@@ -63,6 +63,23 @@ RUN printf '#!/bin/sh\nexit 0\n' > /usr/local/bin/nvidia-smi && chmod +x /usr/lo
 # 4.56~4.57 은 셋 다 DINOv3ViTModel 에 직접 달려 있다. setup.sh 뒤에 눌러 덮는다.
 RUN pip install "transformers==4.57.0"
 
+# setup.sh 는 실패해도 빌드를 멈추지 않는다(set -e 가 없고 . 로 source 된다). 실제로
+# --flash-attn 이 조용히 실패해서, 빌드는 성공했는데 생성 단계에서야 ModuleNotFoundError 가 났다.
+# 명시적으로 다시 깔고, 아래에서 import 까지 확인한다.
+RUN pip install flash-attn==2.7.3 --no-build-isolation
+
+# 빌드 타임 임포트 검증.
+# 지금까지 워커를 죽인 것들(torchaudio ABI 불일치, flash_attn 누락, transformers 버전)은
+# 전부 GPU 없이 import 만으로 잡히는 부류였다. 유료 콜드스타트 7분을 태우고 알아내는 대신
+# 무료 CI 에서 실패시킨다. GPU 가 필요한 trellis2/o_voxel 은 여기서 건드리지 않는다.
+RUN python -c "\
+import torch, torchvision, torchaudio, transformers, flash_attn; \
+print('torch', torch.__version__); \
+print('torchvision', torchvision.__version__); \
+print('torchaudio', torchaudio.__version__); \
+print('transformers', transformers.__version__); \
+print('flash_attn', flash_attn.__version__)"
+
 WORKDIR /app
 
 # RunPod SDK + S3 업로드 + HF 다운로드 가속
