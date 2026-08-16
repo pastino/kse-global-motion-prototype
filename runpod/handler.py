@@ -248,7 +248,13 @@ def _generate(pipe, item: dict, opts: dict, bucket: str, region: str) -> dict:
         # 인자 이름은 resolution 이 아니라 pipeline_type 이다.
         # '512' / '1024' / '1024_cascade' / '1536_cascade' 중 하나. 기본값은 1024_cascade.
         pipeline_type=opts.get("pipeline_type", "1024_cascade"),
+        # 희소 토큰 예산. 올리면 디테일이 늘지만 VRAM 과 시간이 같이 는다.
         max_num_tokens=opts.get("max_num_tokens", 49152),
+        # pipeline.json 기본 steps 가 12 로 낮다. 플로우 매칭에서 스텝은 품질에 직결된다.
+        # 세 단계(구조 / 형상 / 텍스처)를 각각 따로 올릴 수 있다.
+        sparse_structure_sampler_params=opts.get("ss_params", {}),
+        shape_slat_sampler_params=opts.get("shape_params", {}),
+        tex_slat_sampler_params=opts.get("tex_params", {}),
     )
     mesh = outputs[0] if isinstance(outputs, (list, tuple)) else outputs
 
@@ -340,11 +346,13 @@ def handler(job):
     if not isinstance(items, list):
         return {"error": "items 는 배열이어야 한다"}
 
+    # 여기 없는 키는 _generate 까지 도달하지 못한다. 새 설정을 추가할 때 같이 넣어야 한다.
     opts = {
         k: payload[k]
         for k in (
-            "seed", "resolution", "simplify", "decimation_target",
+            "seed", "pipeline_type", "max_num_tokens", "simplify", "decimation_target",
             "texture_size", "remesh", "webp", "s3_folder",
+            "ss_params", "shape_params", "tex_params",
         )
         if k in payload
     }

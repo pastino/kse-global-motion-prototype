@@ -73,6 +73,15 @@ async function imageTo3D(pairs) {
         // '512' / '1024' / '1024_cascade' / '1536_cascade'.
         pipeline_type: process.env.TRELLIS_PIPELINE ?? '1024_cascade',
         texture_size: Number(process.env.TRELLIS_TEXTURE ?? 4096),
+        max_num_tokens: Number(process.env.TRELLIS_TOKENS ?? 49152),
+        // pipeline.json 의 기본 steps 는 12 다. 올리면 느려지는 대신 형상이 정돈된다.
+        ...(process.env.TRELLIS_STEPS
+          ? {
+              ss_params: { steps: Number(process.env.TRELLIS_STEPS) },
+              shape_params: { steps: Number(process.env.TRELLIS_STEPS) },
+              tex_params: { steps: Number(process.env.TRELLIS_STEPS) },
+            }
+          : {}),
         s3_folder: process.env.TRELLIS_S3_FOLDER ?? 'kse/models',
         ...(process.env.AWS_S3_BUCKET ? { s3_bucket: process.env.AWS_S3_BUCKET } : {}),
       },
